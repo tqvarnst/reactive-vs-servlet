@@ -1,0 +1,173 @@
+apiVersion: v1
+kind: Template
+metadata:
+  creationTimestamp: null
+  name: product-template
+objects:
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftNewApp
+    creationTimestamp: null
+    generation: 1
+    labels:
+      app: product
+    name: product
+  spec:
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      app: product
+      deploymentconfig: product
+    strategy:
+      activeDeadlineSeconds: 21600
+      resources: {}
+      rollingParams:
+        intervalSeconds: 1
+        maxSurge: 25%
+        maxUnavailable: 25%
+        timeoutSeconds: 600
+        updatePeriodSeconds: 1
+      type: Rolling
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: product
+          deploymentconfig: product
+      spec:
+        containers:
+        - image: twalter/openshift-nginx@sha256:e2d5a7898a6f7779dfcbeb87b257bf5b3dc7143df409ed15f90f141d2e7870b1
+          imagePullPolicy: Always
+          name: nginx-latest
+          ports:
+          - containerPort: 80
+            protocol: TCP
+          - containerPort: 8081
+            protocol: TCP
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /usr/share/nginx/html
+            name: product-volume
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        volumes:
+        - configMap:
+            defaultMode: 420
+            items:
+            - key: product.json
+              path: api/products
+            name: product
+          name: product-volume
+    test: false
+    triggers:
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+        - nginx-latest
+        from:
+          kind: ImageStreamTag
+          name: nginx-latest:latest
+  status:
+    availableReplicas: 0
+    latestVersion: 0
+    observedGeneration: 0
+    replicas: 0
+    unavailableReplicas: 0
+    updatedReplicas: 0
+- apiVersion: v1
+  data:
+    product.json: "[{ \n  \"itemId\" : \"165613\", \n  \"name\" : \"Solid Performance
+      Polo\", \n  \"description\" : \"Moisture-wicking, antimicrobial 100% polyester
+      design wicks for life of garment. No-curl, rib-knit collar...\", \n  \"price\"
+      : 17.8\n}, { \n  \"itemId\" : \"165614\", \n  \"name\" : \"Ogio Caliber Polo\",
+      \n  \"description\" : \"Moisture-wicking 100% polyester. Rib-knit collar and
+      cuffs; Ogio jacquard tape insitem_ide neck; bar-tacked three-button placket
+      with...\", \n  \"price\" : 28.75 \n}, { \n  \"itemId\" : \"165954\", \n  \"name\"
+      : \"16 oz. Vortex Tumbler\", \n  \"description\" : \"Double-wall insulated,
+      BPA-free, acrylic cup. Push-on litem_id with thumb-slitem_ide closure; for hot
+      and cold beverages. Holds 16 oz. Hand wash only. Imprint. Clear.\", \n  \"price\"
+      : 6.0\n}, { \n  \"itemId\" : \"329199\", \n  \"name\" : \"Forge Laptop Sticker\",
+      \n  \"description\" : \"JBoss Community Forge Project Sticker\", \n  \"price\"
+      : 8.5\n}, { \n  \"itemId\" : \"329299\", \n  \"name\" : \"Red Fedora\", \n  \"description\"
+      : \"Official Red Hat Fedora\", \n  \"price\" : 34.99\n}, { \n  \"itemId\" :
+      \"444434\", \n  \"name\" : \"Pebble Smart Watch\", \n  \"description\" : \"Smart
+      glasses and smart watches are perhaps two of the most exciting developments
+      in recent years. \", \n  \"price\" : 24.0\n}, { \n  \"itemId\" : \"444435\",
+      \n  \"name\" : \"Oculus Rift\", \n  \"description\" : \"The world of gaming
+      has also undergone some very unique and compelling tech advances in recent years.
+      Virtual reality...\", \n  \"price\" : 106.0\n}, { \n  \"itemId\" : \"444436\",
+      \n  \"name\" : \"Lytro Camera\", \n  \"description\" : \"Consumers who want
+      to up their photography game are looking at newfangled cameras like the Lytro
+      Field camera, designed to ...\", \n  \"price\" : 44.3\n}]"
+  kind: ConfigMap
+  metadata:
+    creationTimestamp: null
+    name: product
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    annotations:
+      openshift.io/image.dockerRepositoryCheck: 2018-03-12T05:58:19Z
+    creationTimestamp: null
+    generation: 1
+    name: nginx-latest
+  spec:
+    lookupPolicy:
+      local: false
+    tags:
+    - annotations: null
+      from:
+        kind: DockerImage
+        name: twalter/openshift-nginx:latest
+      generation: 1
+      importPolicy: {}
+      name: latest
+      referencePolicy:
+        type: Source
+  status:
+    dockerImageRepository: ""
+- apiVersion: v1
+  kind: Service
+  metadata:
+    creationTimestamp: null
+    labels:
+      app: product
+    name: product
+  spec:
+    ports:
+    - name: 8081-tcp
+      port: 8081
+      protocol: TCP
+      targetPort: 8081
+    selector:
+      app: product
+      deploymentconfig: product
+    sessionAffinity: None
+    type: ClusterIP
+  status:
+    loadBalancer: {}
+- apiVersion: v1
+  kind: Route
+  metadata:
+    annotations:
+      openshift.io/host.generated: "true"
+    creationTimestamp: null
+    labels:
+      app: product
+    name: product
+  spec:
+    port:
+      targetPort: 8081
+    to:
+      kind: Service
+      name: product
+      weight: 100
+    wildcardPolicy: None
