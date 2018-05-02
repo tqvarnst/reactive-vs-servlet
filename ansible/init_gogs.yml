@@ -1,0 +1,21 @@
+---
+- import_role:
+    name: openshift_gogs
+  vars:
+    project_name: "{{ infra_project }}"
+    gogs_route: "{{ gogs_hostname }}"
+    gogs_image_version: 0.11.34
+    gogs_admin_user: "{{ user_gogs_admin }}"
+    gogs_admin_password: "{{ user_gogs_password }}"
+    gogs_user: "{{ user_gogs_user }}"
+    gogs_password: "{{ user_gogs_password }}"
+    clean_deploy: true
+
+- name: wait for gogs to be running
+  uri:
+    url: http://{{ gogs_hostname }}
+    status_code: 200
+  register: result
+  until: result.status == 200
+  retries: "30"
+  delay: "10"

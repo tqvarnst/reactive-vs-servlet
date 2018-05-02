@@ -1,0 +1,25 @@
+---
+# Common Facts for 
+- name: Check if infra project exists
+  shell: "{{ openshift_cli }} get projects | grep -q {{ infra_project }} && echo true || echo false"
+  register: cmd_output
+
+- set_fact:
+    infra_project_exists: true
+  when: cmd_output.stdout == "true"
+
+- set_fact:
+    infra_project_exists: false
+  when: cmd_output.stdout != "true"
+   
+- name: Check if nexus is alread installed
+  shell: "{{ openshift_cli }} get service nexus -n {{ infra_project }} && echo installed || echo not_installed"
+  register: cmd_output
+
+- set_fact:
+    nexus_svc_exists: true
+  when: cmd_output.stdout == "not_installed"
+
+- set_fact:
+    nexus_svc_exists: false
+  when: cmd_output.stdout != "installed"
