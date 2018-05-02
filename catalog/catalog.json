@@ -1,0 +1,50 @@
+[
+  {
+    "itemId": "165613",
+    "name": "Solid Performance Polo",
+    "description": "Moisture-wicking, antimicrobial 100% polyester design wicks for life of garment. No-curl, rib-knit collar...",
+    "price": 17.8
+  },
+  {
+    "itemId": "165614",
+    "name": "Ogio Caliber Polo",
+    "description": "Moisture-wicking 100% polyester. Rib-knit collar and cuffs; Ogio jacquard tape insitem_ide neck; bar-tacked three-button placket with...",
+    "price": 28.75
+  },
+  {
+    "itemId": "165954",
+    "name": "16 oz. Vortex Tumbler",
+    "description": "Double-wall insulated, BPA-free, acrylic cup. Push-on litem_id with thumb-slitem_ide closure; for hot and cold beverages. Holds 16 oz. Hand wash only. Imprint. Clear.",
+    "price": 6.0
+  },
+  {
+    "itemId": "329199",
+    "name": "Forge Laptop Sticker",
+    "description": "JBoss Community Forge Project Sticker",
+    "price": 8.5
+  },
+  {
+    "itemId": "329299",
+    "name": "Red Fedora",
+    "description": "Official Red Hat Fedora",
+    "price": 34.99
+  },
+  {
+    "itemId": "444434",
+    "name": "Pebble Smart Watch",
+    "description": "Smart glasses and smart watches are perhaps two of the most exciting developments in recent years. ",
+    "price": 24.0
+  },
+  {
+    "itemId": "444435",
+    "name": "Oculus Rift",
+    "description": "The world of gaming has also undergone some very unique and compelling tech advances in recent years. Virtual reality...",
+    "price": 106.0
+  },
+  {
+    "itemId": "444436",
+    "name": "Lytro Camera",
+    "description": "Consumers who want to up their photography game are looking at newfangled cameras like the Lytro Field camera, designed to ...",
+    "price": 44.3
+  }
+]
