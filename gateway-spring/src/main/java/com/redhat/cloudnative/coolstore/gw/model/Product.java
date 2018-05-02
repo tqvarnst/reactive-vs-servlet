@@ -1,4 +1,4 @@
-package com.redhat.cloudnative.catalog.model;
+package com.redhat.cloudnative.coolstore.gw.model;
 
 public class Product {
 

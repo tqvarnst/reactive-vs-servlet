@@ -1,4 +1,4 @@
-package com.redhat.cloudnative.catalog;
+package com.redhat.cloudnative.coolstore.gw;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

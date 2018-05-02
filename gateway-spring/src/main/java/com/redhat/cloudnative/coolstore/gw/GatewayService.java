@@ -1,6 +1,6 @@
-package com.redhat.cloudnative.catalog;
+package com.redhat.cloudnative.coolstore.gw;
 
-import com.redhat.cloudnative.catalog.model.Product;
+import com.redhat.cloudnative.coolstore.gw.model.Product;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -11,11 +11,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import java.util.List;
 
 @Controller
-@RequestMapping("/api")
+@RequestMapping("/services")
 @CrossOrigin
 public class GatewayService {
-
-
 
     @Autowired
     InventoryClient inventoryClient;
