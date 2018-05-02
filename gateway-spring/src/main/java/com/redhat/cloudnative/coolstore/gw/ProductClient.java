@@ -11,7 +11,7 @@ import java.util.List;
 @FeignClient(name="product")
 public interface ProductClient {
 
-    @RequestMapping(method = RequestMethod.GET, value = "/services/catalog", consumes = {MediaType.APPLICATION_JSON_VALUE})
+    @RequestMapping(method = RequestMethod.GET, value = "/services/products", consumes = {MediaType.APPLICATION_JSON_VALUE})
     List<Product> getProducts();
 
 }
