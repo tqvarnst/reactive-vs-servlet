@@ -30,14 +30,14 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.all("/services/*", function (req, res, next) {
+app.all("/api/*", function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Cache-Control, Pragma, Origin, Authorization, Content-Type, X-Requested-With");
   res.header("Access-Control-Allow-Methods", "GET, PUT, POST");
   return next();
 });
 
-app.use('/services/products', (request, response) => {
+app.use('/api/products', (request, response) => {
   console.log(new Date() + " - GET /services/products : 200 OK");
   return response.json(catalogdb);
 });
