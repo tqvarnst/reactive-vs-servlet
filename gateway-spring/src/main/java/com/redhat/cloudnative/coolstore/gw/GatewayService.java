@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import java.util.List;
 
 @Controller
-@RequestMapping("/services")
+@RequestMapping("/api")
 @CrossOrigin
 public class GatewayService {
 
@@ -27,7 +27,7 @@ public class GatewayService {
         List<Product> productList = productClient.getProducts();
         productList.stream()
                 .forEach(p -> {
-                    p.setAvailability(inventoryClient.getInventory());
+                    p.setAvailability(inventoryClient.getInventory(p.getItemId()));
                 });
         return productList;
     }
