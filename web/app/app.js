@@ -81,8 +81,8 @@ module.config(['$httpProvider', function ($httpProvider) {
             'request': function (config) {
                 var deferred = $q.defer();
                 //Set CORS headers
-                config.header("Access-Control-Allow-Origin", "*")
-                config.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+                //config.headers["Access-Control-Allow-Origin"]="*";
+                //config.headers["Access-Control-Allow-Headers"] = "Origin, X-Requested-With, Content-Type, Accept,Authorization";
                 if (Auth.authz && Auth.authz.token) {
                     Auth.authz.updateToken(5).success(function () {
                         config.headers = config.headers || {};
