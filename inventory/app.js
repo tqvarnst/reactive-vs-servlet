@@ -41,7 +41,7 @@ app.get("/behave", (req, res) => {
   res.sendStatus(204).end();
 });
 
-app.use('/services/inventory/:itemId', (request, response) => {
+app.use('/api/inventory/:itemId', (request, response) => {
   
   if (misbehave) {
     response.sendStatus(503).end();
@@ -53,7 +53,7 @@ app.use('/services/inventory/:itemId', (request, response) => {
   setTimeout(function() {
 
     if (itemId === 'all') {
-      console.log(new Date() + " - GET /services/inventory/all: 200 OK");
+      console.log(new Date() + " - GET /api/inventory/all: 200 OK");
       return response.json(inventorydb);
     }
 
@@ -61,10 +61,10 @@ app.use('/services/inventory/:itemId', (request, response) => {
       return el.itemId === itemId;
     });
     if (inventory_result) {
-      console.log(new Date() + " - GET /services/inventory/" + itemId + ": 200 OK" + " after a delay of " + SERVICE_DELAY);
+      console.log(new Date() + " - GET /api/inventory/" + itemId + ": 200 OK" + " after a delay of " + SERVICE_DELAY);
       return response.json(inventory_result);
     } else {
-      console.log(new Date() + " - GET /services/inventory/" + itemId + ": 404 Not Found");
+      console.log(new Date() + " - GET /api/inventory/" + itemId + ": 404 Not Found");
       response.sendStatus(404).end();
     }
   }, SERVICE_DELAY);
