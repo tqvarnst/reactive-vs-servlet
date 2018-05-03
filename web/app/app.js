@@ -80,6 +80,9 @@ module.config(['$httpProvider', function ($httpProvider) {
         return {
             'request': function (config) {
                 var deferred = $q.defer();
+                //Set CORS headers
+                config.header("Access-Control-Allow-Origin", "*")
+                config.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
                 if (Auth.authz && Auth.authz.token) {
                     Auth.authz.updateToken(5).success(function () {
                         config.headers = config.headers || {};
@@ -93,6 +96,7 @@ module.config(['$httpProvider', function ($httpProvider) {
                     config.withCredentials = false;
                     deferred.resolve(config);
                 }
+                
                 return deferred.promise;
 
             },
