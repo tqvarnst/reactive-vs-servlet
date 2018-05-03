@@ -11,7 +11,7 @@
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <spring-boot.bom.version>1.5.8.Final-redhat-1</spring-boot.bom.version>
+        <spring-boot.bom.version>1.5.10.SP2-redhat-2</spring-boot.bom.version>
         <fabric8.version>2.3.4</fabric8.version>
         <spring.k8s.bom.version>0.2.0.RELEASE</spring.k8s.bom.version>
         <k8s.client.version>2.4.1</k8s.client.version>
@@ -42,14 +42,26 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-feign</artifactId>
+            <version>RELEASE</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-hystrix</artifactId>
+            <version>RELEASE</version>
         </dependency>
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-actuator</artifactId>
+            <groupId>io.opentracing.contrib</groupId>
+            <artifactId>opentracing-spring-cloud-starter</artifactId>
+            <version>RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>com.uber.jaeger</groupId>
+            <artifactId>jaeger-tracerresolver</artifactId>
+            <version>RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-kubernetes-config</artifactId>
         </dependency>
     </dependencies>
     <build>
@@ -57,7 +69,7 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>2.0.1.RELEASE</version>
+                <version>1.5.10.RELEASE</version>
                 <executions>
                     <execution>
                         <goals>
@@ -104,6 +116,17 @@
                             </spring-boot>
                         </config>
                     </generator>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.21.0</version>
+                <configuration>
+                    <systemPropertyVariables>
+                        <spring.cloud.kubernetes.config.enabled>false</spring.cloud.kubernetes.config.enabled>
+                        <spring.cloud.kubernetes.secrets.enabled>false</spring.cloud.kubernetes.secrets.enabled>
+                    </systemPropertyVariables>
                 </configuration>
             </plugin>
         </plugins>

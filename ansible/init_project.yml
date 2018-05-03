@@ -1,0 +1,47 @@
+---
+- name: Verify that variable project-suffix is set
+  fail:
+    msg: "project variable is not defined"
+  when: project-suffix is not defined
+
+- name: Create coolstore-{{ project-suffix }} project
+  shell: "{{ openshift_cli }} new-project coolstore-{{ project-suffix }} --admin=developer"
+
+- name: Create appications
+  shell: "{{ openshift_cli }} new-app --name={{ item.name }} --docker-image=\"{{ item.image }}\" -n coolstore-{{ project-suffix }}"
+  with_items:
+     - { name: inventory, image: "docker.io/coolstore/inventory:latest" }
+     - { name: catalog, image: "docker.io/coolstore/catalog:latest" }
+     - { name: gateway, image: "docker.io/coolstore/gateway-{{ project-suffix }}:latest" }
+     - { name: web, image: "docker.io/coolstore/web:latest" }
+
+- name: Expose services
+  shell: "{{ openshift_cli }} expose svc/{{ item }} -n coolstore-{{ project-suffix }}"
+  with_items:
+     - gateway
+     - web
+
+- name: Configure Spring Application
+  shell: "{{ openshift_cli }} env dc/gateway JAVA_OPTIONS=\"-Dspring.profiles.active=openshift\" -n coolstore-{{ project-suffix }}"
+  when: project-suffix == "spring"
+
+- name: Configure Web Application
+  shell: "{{ openshift_cli }} env dc/web COOLSTORE_GW_ENDPOINT=\"gateway-coolstore-{{ project-suffix }}\" -n coolstore-{{ project-suffix }}"
+
+- name: Enable Jaeger tracing on the gateway
+  shell: |
+    {{ openshift_cli }} env dc/gateway JAEGER_SERVICE_NAME="gateway-{{ project-suffix }}" \
+          JAEGER_ENDPOINT=http://jaeger-collector.istio-system.svc:14267/api/traces \
+          JAEGER_PROPAGATION=b3 \
+          JAEGER_SAMPLER_TYPE=const \
+          JAEGER_SAMPLER_PARAM=1
+
+#- name: Give developer access to the coolstore-{{ project-suffix }} project
+#  shell: "{{ openshift_cli }} policy add-role-to-user admin developer -n coolstore-{{ project-suffix }}"
+
+# Give istio access right to the projects
+- name: Set istio accesss rights on the project
+  shell: |
+    {{ openshift_cli }} adm policy add-scc-to-user privileged -z default -n coolstore-{{ project_suffix }}
+    {{ openshift_cli }} adm policy add-scc-to-user anyuid -z default coolstore-{{ project_suffix }}
+    {{ openshift_cli }} adm policy add-role-to-user admin system:serviceaccount:coolstore-{{ project_suffix }}:default -n coolstore-{{ project_suffix }}

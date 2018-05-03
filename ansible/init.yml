@@ -21,7 +21,7 @@
       tags: always
 
     - include_role:
-        name: infra_project_common_facts
+        name: demo_common_facts
       tags: always
 
     - set_fact:
@@ -29,24 +29,24 @@
       tags: always
 
 
-    - name: create infra project
-      shell: "{{ openshift_cli }} new-project {{ infra_project }}"
-      when: not infra_project_exists
-      tags: always
+#    - name: create infra project
+#      shell: "{{ openshift_cli }} new-project {{ infra_project }}"
+#      when: not infra_project_exists
+#      tags: always
 
     # deploy nexus
-    - import_role:
-        name: openshift_sonatype_nexus
-      vars:
-        project_name: "{{ infra_project }}"
-        nexus_image_version: 3.10.0
-        nexus_max_memory: 6Gi
-      when: not nexus_svc_exists
-      tags: nexus
-
-    # deploy gogs
-    - include_tasks: init_gogs.yml
-      tags: gogs
+#    - import_role:
+#        name: openshift_sonatype_nexus
+#      vars:
+#        project_name: "{{ infra_project }}"
+#        nexus_image_version: 3.10.0
+#        nexus_max_memory: 6Gi
+#      when: not nexus_svc_exists
+#      tags: nexus
+#
+#    # deploy gogs
+#    - include_tasks: init_gogs.yml
+#      tags: gogs
 
     # deploy istio and prod
     - include_tasks: init_istio.yml
@@ -61,10 +61,13 @@
 
     - name: Install openjdk image stream
       shell: "{{ openshift_cli }} create -f https://raw.githubusercontent.com/openshift/openshift-ansible/release-3.9/roles/openshift_examples/files/examples/v3.9/xpaas-streams/jboss-image-streams.json -n openshift"
-      when: jdk_imagestream_result|failed   
-      tags: validate     
+      when: jdk_imagestream_result is failed
+      tags: validate
 
-
-
-
-
+# Populate inventory-dev template
+    - name: Install project coolstore-{{ item }}
+      include_tasks: init_project.yml
+      vars:
+        project_suffix: {{ item }}
+      with_items:
+        - spring
