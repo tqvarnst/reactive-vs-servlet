@@ -14,6 +14,7 @@
     github_account: openshift-labs
     github_ref: master
     istio_version: 0.6.0
+    istio_options:
     clean_init: false
   tasks:
     - include_role:
@@ -65,9 +66,11 @@
       tags: validate
 
 # Populate inventory-dev template
-    - name: Install project coolstore-{{ item }}
+    - name: Install project coolstore project for each type
       include_tasks: init_project.yml
       vars:
-        project_suffix: {{ item }}
+        project_suffix: "{{ gateway_type }}"
       with_items:
         - spring
+      loop_control:
+          loop_var: gateway_type

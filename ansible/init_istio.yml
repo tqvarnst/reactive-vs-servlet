@@ -25,6 +25,13 @@
     dest: "{{ istio_dir.path }}"
   when: ansible_distribution == 'MacOSX'
 
+- name: set itstio_ctl path as fact
+  set_fact:
+    istio_ctl: "{{ istio_dir.path }}/istio-{{ istio_version }}/bin/istioctl"
+
+- debug:
+    msg: "istio_ctl = {{ istio_ctl }}"
+
 - name: setup istio-system project
   shell: |
     {{ openshift_cli }} new-project istio-system
@@ -59,12 +66,4 @@
     {{ openshift_cli }} expose svc prometheus    -n istio-system
   when: istio_project_result|failed
 
-
-  # Give istio access right to the projects
-  - name: create prod project
-    shell: |
-      {{ openshift_cli }} adm new-project prod{{ project_suffix }} --display-name='CoolStore PROD' --admin='{{ user_openshift }}'
-      {{ openshift_cli }} adm policy add-scc-to-user privileged -z default -n prod{{ project_suffix }}
-      {{ openshift_cli }} adm policy add-scc-to-user anyuid -z default prod{{ project_suffix }}
-      {{ openshift_cli }} adm policy add-role-to-user admin system:serviceaccount:prod{{ project_suffix }}:default -n prod{{ project_suffix }}
 

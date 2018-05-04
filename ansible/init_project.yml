@@ -1,47 +1,73 @@
 ---
-- name: Verify that variable project-suffix is set
+- name: Verify that variable project_suffix is set
   fail:
     msg: "project variable is not defined"
-  when: project-suffix is not defined
+  when: project_suffix is not defined
 
-- name: Create coolstore-{{ project-suffix }} project
-  shell: "{{ openshift_cli }} new-project coolstore-{{ project-suffix }} --admin=developer"
+#- name: Create coolstore-{{ project_suffix }} project
+#  shell: "{{ openshift_cli }} new-project coolstore-{{ project_suffix }}"
+
+- name: Create coolstore-{{ project_suffix }} project
+  shell: |
+    {{ openshift_cli }} adm new-project coolstore-{{ project_suffix }} --display-name='CoolStore Spring GW' --admin='developer'
+    {{ openshift_cli }} adm policy add-scc-to-user privileged -z default -n coolstore-{{ project_suffix }}
+    {{ openshift_cli }} adm policy add-scc-to-user anyuid -z default coolstore-{{ project_suffix }}
+    {{ openshift_cli }} adm policy add-role-to-user admin system:serviceaccount:coolstore-{{ project_suffix }}:default -n coolstore-{{ project_suffix }}
+#
+#- name: Give developer access to the coolstore-{{ project_suffix }} project
+#  shell: "{{ openshift_cli }} policy add-role-to-user admin developer -n coolstore-{{ project_suffix }}"
+#
+## Give istio access right to the projects
+#- name: Set istio accesss rights on the project
+#  shell: |
+#    {{ openshift_cli }} adm policy add-scc-to-user privileged -z default -n coolstore-{{ project_suffix }}
+#    {{ openshift_cli }} adm policy add-scc-to-user anyuid -z default coolstore-{{ project_suffix }}
+#    {{ openshift_cli }} adm policy add-role-to-user admin system:serviceaccount:coolstore-{{ project_suffix }}:default -n coolstore-{{ project_suffix }}
+
+- name: set istioctl kubeconfig
+  set_fact:
+    istio_options: "--kubeconfig {{ oc_kube_config }}"
+  when:
+    - oc_kube_config is defined
+    - oc_kube_config is not none
+    - oc_kube_config|trim() != ""
 
 - name: Create appications
-  shell: "{{ openshift_cli }} new-app --name={{ item.name }} --docker-image=\"{{ item.image }}\" -n coolstore-{{ project-suffix }}"
+  shell: |
+    {{ openshift_cli }} new-app --name="{{ item.name }}" --docker-image="{{ item.image }}" -n "coolstore-{{ project_suffix }}" -o yaml | \
+        {{ istio_ctl }} kube-inject -f - | \
+          {{ openshift_cli }} apply -f - -n coolstore-{{ project_suffix }}
   with_items:
      - { name: inventory, image: "docker.io/coolstore/inventory:latest" }
      - { name: catalog, image: "docker.io/coolstore/catalog:latest" }
-     - { name: gateway, image: "docker.io/coolstore/gateway-{{ project-suffix }}:latest" }
+     - { name: gateway, image: "docker.io/coolstore/gateway-{{ project_suffix }}:latest" }
      - { name: web, image: "docker.io/coolstore/web:latest" }
 
-- name: Expose services
-  shell: "{{ openshift_cli }} expose svc/{{ item }} -n coolstore-{{ project-suffix }}"
-  with_items:
-     - gateway
-     - web
+- name: deploy web in coolstore-{{ project_suffix }}
+  shell: |
+    {{ openshift_cli }} process -f files/web-template.yml \
+        -n coolstore-{{ project_suffix }} | \
+              {{ istio_ctl }} kube-inject {{ istio_options }} -f - | \
+                  {{ openshift_cli }} apply -f - -n coolstore-{{ project_suffix }}
 
 - name: Configure Spring Application
-  shell: "{{ openshift_cli }} env dc/gateway JAVA_OPTIONS=\"-Dspring.profiles.active=openshift\" -n coolstore-{{ project-suffix }}"
-  when: project-suffix == "spring"
+  shell: "{{ openshift_cli }} env dc/gateway JAVA_OPTIONS=\"-Dspring.profiles.active=openshift\" -n coolstore-{{ project_suffix }}"
+  when: project_suffix == "spring"
 
 - name: Configure Web Application
-  shell: "{{ openshift_cli }} env dc/web COOLSTORE_GW_ENDPOINT=\"gateway-coolstore-{{ project-suffix }}\" -n coolstore-{{ project-suffix }}"
+  shell: "{{ openshift_cli }} env dc/web COOLSTORE_GW_ENDPOINT=\"gateway-coolstore-{{ project_suffix }}\" -n coolstore-{{ project_suffix }}"
 
 - name: Enable Jaeger tracing on the gateway
   shell: |
-    {{ openshift_cli }} env dc/gateway JAEGER_SERVICE_NAME="gateway-{{ project-suffix }}" \
+    {{ openshift_cli }} env dc/gateway -n coolstore-{{ project_suffix }} \
+          JAEGER_SERVICE_NAME="gateway-{{ project_suffix }}" \
           JAEGER_ENDPOINT=http://jaeger-collector.istio-system.svc:14267/api/traces \
           JAEGER_PROPAGATION=b3 \
           JAEGER_SAMPLER_TYPE=const \
           JAEGER_SAMPLER_PARAM=1
 
-#- name: Give developer access to the coolstore-{{ project-suffix }} project
-#  shell: "{{ openshift_cli }} policy add-role-to-user admin developer -n coolstore-{{ project-suffix }}"
-
-# Give istio access right to the projects
-- name: Set istio accesss rights on the project
-  shell: |
-    {{ openshift_cli }} adm policy add-scc-to-user privileged -z default -n coolstore-{{ project_suffix }}
-    {{ openshift_cli }} adm policy add-scc-to-user anyuid -z default coolstore-{{ project_suffix }}
-    {{ openshift_cli }} adm policy add-role-to-user admin system:serviceaccount:coolstore-{{ project_suffix }}:default -n coolstore-{{ project_suffix }}
+- name: Expose services
+  shell: "{{ openshift_cli }} expose svc/{{ item }} -n coolstore-{{ project_suffix }}"
+  with_items:
+     - gateway
+     - web
