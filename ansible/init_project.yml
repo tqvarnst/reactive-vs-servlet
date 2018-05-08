@@ -12,8 +12,9 @@
     {{ openshift_cli }} adm new-project coolstore-{{ project_suffix }} --display-name='CoolStore {{ project_suffix }} GW' --admin='developer'
     {{ openshift_cli }} adm policy add-scc-to-user privileged -z default -n coolstore-{{ project_suffix }}
     {{ openshift_cli }} adm policy add-scc-to-user anyuid -z default coolstore-{{ project_suffix }}
+    {{ openshift_cli }} adm policy add-role-to-group view system:serviceaccounts -n coolstore-{{ project_suffix }}
     {{ openshift_cli }} adm policy add-role-to-user admin system:serviceaccount:coolstore-{{ project_suffix }}:default -n coolstore-{{ project_suffix }}
-
+    {{ openshift_cli }} adm policy add-role-to-user view -z default -n coolstore-{{ project_suffix }}
 
 #
 - name: Give developer access to the coolstore-{{ project_suffix }} project
@@ -50,11 +51,20 @@
 - name: Expose services
   shell: "{{ openshift_cli }} expose svc/{{ item }} -n coolstore-{{ project_suffix }}"
   with_items:
-     - gateway
+     - gateway-{{ project_suffix }}
      - web
+
+- name: Update gateway configuration
+  shell: |
+    {{ openshift_cli }} env deployment/web  -n coolstore-{{ project_suffix }} --overwrite \
+        COOLSTORE_GW_ENDPOINT="gateway-{{ project_suffix }}-coolstore-{{ project_suffix }}" \
+        HOSTNAME_HTTP="web:8080"
+
 
 - name: Add delay rule for inventory
   shell: "{{ istio_ctl }} create -f files/route-rule-inventory-delay.yml -n coolstore-{{ project_suffix }}"
+
+
 
 #- name: Create appications
 #  shell: |

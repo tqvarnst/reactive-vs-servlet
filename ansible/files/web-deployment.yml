@@ -18,12 +18,8 @@ spec:
         version: v1
     spec:
       containers:
-      - env:
-        - name: COOLSTORE_GW_ENDPOINT
-          value: gateway-coolstore-spring
-        - name: HOSTNAME_HTTP
-          value: web:8080
-        image: docker.io/coolstore/web:latest
+      - name: web
+        image: coolstore/web:latest
         imagePullPolicy: IfNotPresent
         livenessProbe:
           exec:
@@ -33,7 +29,6 @@ spec:
           initialDelaySeconds: 10
           periodSeconds: 5
           timeoutSeconds: 1
-        name: web
         ports:
         - containerPort: 8080
           name: http
