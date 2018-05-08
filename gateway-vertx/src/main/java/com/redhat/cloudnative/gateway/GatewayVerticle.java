@@ -91,9 +91,7 @@ public class GatewayVerticle extends AbstractVerticle {
                         // For each item from the catalog, invoke the inventory service
                         Observable.from(products)
                                 .cast(JsonObject.class)
-                                .flatMapSingle(product ->
-                                {
-                                     propagate(inventory,rc).get("/api/inventory/" + product.getString("itemId")).as(BodyCodec.jsonObject())
+                                .flatMapSingle(product -> propagate(inventory,rc).get("/api/inventory/" + product.getString("itemId")).as(BodyCodec.jsonObject())
                                             .rxSend()
                                             .map(resp -> {
                                                 if (resp.statusCode() != 200) {
@@ -103,8 +101,8 @@ public class GatewayVerticle extends AbstractVerticle {
                                                 }
                                                 return product.copy().put("availability",
                                                         new JsonObject().put("quantity", resp.body().getInteger("quantity")));
-                                            });
-                                })
+                                            })
+                                )
                                 .toList().toSingle()
                 )
                 .subscribe(
