@@ -1,0 +1,15 @@
+apiVersion: config.istio.io/v1alpha2
+kind: RouteRule
+metadata:
+  name: inventory-delay
+spec:
+  destination:
+    name: inventory
+  precedence: 1
+  route:
+  - labels:
+      app: inventory
+  httpFault:
+    delay:
+      percent: 100
+      fixedDelay: 500ms
