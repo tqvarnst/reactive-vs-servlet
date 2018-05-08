@@ -72,5 +72,6 @@
         project_suffix: "{{ gateway_type }}"
       with_items:
         - spring
+        - vertx
       loop_control:
           loop_var: gateway_type
