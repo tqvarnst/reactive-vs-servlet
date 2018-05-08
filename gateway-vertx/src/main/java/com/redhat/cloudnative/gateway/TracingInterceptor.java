@@ -1,6 +1,7 @@
 package com.redhat.cloudnative.gateway;
 
 import io.vertx.core.Handler;
+import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.client.impl.WebClientInternal;
 import io.vertx.rxjava.ext.web.RoutingContext;
 import io.vertx.rxjava.ext.web.client.WebClient;

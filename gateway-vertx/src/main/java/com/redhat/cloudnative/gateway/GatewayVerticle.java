@@ -57,14 +57,18 @@ public class GatewayVerticle extends AbstractVerticle {
                     rec -> rec.getName().equals("catalog"))
                     .onErrorReturn(t -> WebClient.create(vertx, new WebClientOptions()
                             .setDefaultHost(System.getProperty("catalog.api.host", "catalog"))
-                            .setDefaultPort(Integer.getInteger("catalog.api.port", 8080))));
+                            .setDefaultPort(Integer.getInteger("catalog.api.port", 8080))
+                            .setHttp2MaxPoolSize(100)
+                            .setMaxPoolSize(100)));
 
             // Inventory lookup
             Single<WebClient> inventoryDiscoveryRequest = HttpEndpoint.rxGetWebClient(discovery,
                     rec -> rec.getName().equals("inventory"))
                     .onErrorReturn(t -> WebClient.create(vertx, new WebClientOptions()
                             .setDefaultHost(System.getProperty("inventory.api.host", "inventory"))
-                            .setDefaultPort(Integer.getInteger("inventory.api.port", 8080))));
+                            .setDefaultPort(Integer.getInteger("inventory.api.port", 8080))
+                            .setHttp2MaxPoolSize(100)
+                            .setMaxPoolSize(100)));
 
             // Zip all 3 requests
             Single.zip(catalogDiscoveryRequest, inventoryDiscoveryRequest, (c, i) -> {
