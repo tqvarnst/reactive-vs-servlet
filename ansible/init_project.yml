@@ -1,31 +1,39 @@
 ---
-- name: Verify that variable project_suffix is set
+- name: Verify that the gateway type is set
   fail:
-    msg: "project variable is not defined"
-  when: project_suffix is not defined
+    msg: "gateway_type variable is not defined"
+  when: gateway_type is not defined
 
-#- name: Create coolstore-{{ project_suffix }} project
-#  shell: "{{ openshift_cli }} new-project coolstore-{{ project_suffix }}"
+- name: Create project
+  oc:
+    state: present
+    inline:
+      kind: ProjectRequest
+      metadata:
+        name: coolstore
+      displayName: Coolstore
 
-- name: Create coolstore-{{ project_suffix }} project
+- name: Add project role Admin to developer
+  oc:
+    state: present
+    inline:
+      kind: RoleBinding
+      metadata:
+        name: admin
+        namespace: coolstore
+      roleRef:
+        name: admin
+      userNames:
+        - "developer"
+
+
+- name: Setup access rights for Istio for the project
   shell: |
-    {{ openshift_cli }} adm new-project coolstore-{{ project_suffix }} --display-name='CoolStore {{ project_suffix }} GW' --admin='developer'
-    {{ openshift_cli }} adm policy add-scc-to-user privileged -z default -n coolstore-{{ project_suffix }}
-    {{ openshift_cli }} adm policy add-scc-to-user anyuid -z default coolstore-{{ project_suffix }}
-    {{ openshift_cli }} adm policy add-role-to-group view system:serviceaccounts -n coolstore-{{ project_suffix }}
-    {{ openshift_cli }} adm policy add-role-to-user admin system:serviceaccount:coolstore-{{ project_suffix }}:default -n coolstore-{{ project_suffix }}
-    {{ openshift_cli }} adm policy add-role-to-user view -z default -n coolstore-{{ project_suffix }}
-
-#
-- name: Give developer access to the coolstore-{{ project_suffix }} project
-  shell: "{{ openshift_cli }} policy add-role-to-user admin developer -n coolstore-{{ project_suffix }}"
-#
-## Give istio access right to the projects
-#- name: Set istio accesss rights on the project
-#  shell: |
-#    {{ openshift_cli }} adm policy add-scc-to-user privileged -z default -n coolstore-{{ project_suffix }}
-#    {{ openshift_cli }} adm policy add-scc-to-user anyuid -z default coolstore-{{ project_suffix }}
-#    {{ openshift_cli }} adm policy add-role-to-user admin system:serviceaccount:coolstore-{{ project_suffix }}:default -n coolstore-{{ project_suffix }}
+    {{ openshift_cli }} adm policy add-scc-to-user privileged -z default -n coolstore
+    {{ openshift_cli }} adm policy add-scc-to-user anyuid -z default coolstore
+    {{ openshift_cli }} adm policy add-role-to-group view system:serviceaccounts -n coolstore
+    {{ openshift_cli }} adm policy add-role-to-user admin system:serviceaccount:coolstore:default -n coolstore
+    {{ openshift_cli }} adm policy add-role-to-user view -z default -n coolstore
 
 - name: set istioctl kubeconfig
   set_fact:
@@ -36,17 +44,31 @@
     - oc_kube_config|trim() != ""
 
 
-- name: deploy {{ item }} in coolstore-{{ project_suffix }}
+- name: Deploy web, catalog and inventory services
   shell: |
-    {{ openshift_cli }} apply -f <({{ istio_ctl }} kube-inject {{ istio_options }} -f files/{{ item }}-deployment.yml) -n coolstore-{{ project_suffix }}
-    {{ openshift_cli }} create -f files/{{ item }}-service.yml -n coolstore-{{ project_suffix }}
+    {{ openshift_cli }} apply -f <({{ istio_ctl }} kube-inject {{ istio_options }} -f files/{{ item }}-deployment.yml) -n coolstore
+    {{ openshift_cli }} create -f files/{{ item }}-service.yml -n coolstore
   args:
     executable: /bin/bash
   with_items:
     - inventory
     - catalog
     - web
-    - gateway-{{ project_suffix }}
+
+- name: Expose services
+  shell: "{{ openshift_cli }} expose svc/{{ item }} -n coolstore-{{ project_suffix }}"
+  with_items:
+     - gateway-{{ project_suffix }}
+     - web
+
+- name: Deploy the different gateway types
+  shell: |
+    {{ openshift_cli }} apply -f <({{ istio_ctl }} kube-inject {{ istio_options }} -f files/{{ item }}-deployment.yml) -n coolstore
+    {{ openshift_cli }} create -f files/{{ item }}-service.yml -n coolstore
+  args:
+    executables: /bin/bash
+  with_subelements:
+    - "{{ gateway_types }}"
 
 - name: Expose services
   shell: "{{ openshift_cli }} expose svc/{{ item }} -n coolstore-{{ project_suffix }}"
@@ -62,46 +84,18 @@
 
 
 - name: Add delay rule for inventory
-  shell: "{{ istio_ctl }} create -f files/route-rule-inventory-delay.yml -n coolstore-{{ project_suffix }}"
+  shell: "{{ istio_ctl }} create -f files/route-rule-inventory-delay.yml -n coolstore"
 
-
-
-#- name: Create appications
-#  shell: |
-#    {{ openshift_cli }} new-app --name="{{ item.name }}" --docker-image="{{ item.image }}" -n "coolstore-{{ project_suffix }}" -o yaml | \
-#        {{ istio_ctl }} kube-inject -f - | \
-#          {{ openshift_cli }} apply -f - -n coolstore-{{ project_suffix }}
-#  with_items:
-#     - { name: inventory, image: "docker.io/coolstore/inventory:latest" }
-#     - { name: catalog, image: "docker.io/coolstore/catalog:latest" }
-#     - { name: gateway, image: "docker.io/coolstore/gateway-{{ project_suffix }}:latest" }
-#     - { name: web, image: "docker.io/coolstore/web:latest" }
-
-#- name: deploy web in coolstore-{{ project_suffix }}
-#  shell: |
-#    {{ openshift_cli }} process -f files/web-template.yml \
-#        -n coolstore-{{ project_suffix }} | \
-#              {{ istio_ctl }} kube-inject {{ istio_options }} -f - | \
-#                  {{ openshift_cli }} apply -f - -n coolstore-{{ project_suffix }}
-#
-#- name: Configure Spring Application
-#  shell: "{{ openshift_cli }} env dc/gateway JAVA_OPTIONS=\"-Dspring.profiles.active=openshift\" -n coolstore-{{ project_suffix }}"
-#  when: project_suffix == "spring"
-#
-#- name: Configure Web Application
-#  shell: "{{ openshift_cli }} env dc/web COOLSTORE_GW_ENDPOINT=\"gateway-coolstore-{{ project_suffix }}\" -n coolstore-{{ project_suffix }}"
-#
-#- name: Enable Jaeger tracing on the gateway
-#  shell: |
-#    {{ openshift_cli }} env dc/gateway -n coolstore-{{ project_suffix }} \
-#          JAEGER_SERVICE_NAME="gateway-{{ project_suffix }}" \
-#          JAEGER_ENDPOINT=http://jaeger-collector.istio-system.svc:14267/api/traces \
-#          JAEGER_PROPAGATION=b3 \
-#          JAEGER_SAMPLER_TYPE=const \
-#          JAEGER_SAMPLER_PARAM=1
-#
-#- name: Expose services
-#  shell: "{{ openshift_cli }} expose svc/{{ item }} -n coolstore-{{ project_suffix }}"
-#  with_items:
-#     - gateway
-#     - web
+- name: Deploy web
+  shell: |
+    {{ openshift_cli }} get svc web-spring -n coolstore || \
+    ( \
+      {{ openshift_cli }} apply -f <({{ istio_ctl }} kube-inject {{ istio_options }} -f files/web-deployment.yml) -n coolstore && \
+      {{ openshift_cli }} create -f files/web-service.yml -n coolstore; \
+      {{ openshift_cli }} expose svc/web-spring -n coolstore; \
+      {{ openshift_cli }} env deployment/web-spring  -n coolstore-{{ project_suffix }} --overwrite \
+              COOLSTORE_GW_ENDPOINT="gateway-spring-coolstore" \
+              HOSTNAME_HTTP="web-spring:8080";
+    )
+  args:
+    executable: /bin/bash

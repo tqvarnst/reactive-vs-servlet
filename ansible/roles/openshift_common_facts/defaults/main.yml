@@ -1,8 +1,0 @@
----
-set_hostname_suffix: true
-project_suffix: tmp
-openshift_cli: oc
-
-# oc_kube_config: 
-# oc_token: 
-# openshift_master:

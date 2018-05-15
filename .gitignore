@@ -26,3 +26,7 @@ hs_err_pid*
 .project
 .vscode
 .DS_Store
+.idea
+
+ansible/roles/openshift_common_facts
+

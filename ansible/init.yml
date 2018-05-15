@@ -1,77 +1,118 @@
 ---
 - name: Infra Components for Reactive-vs-Servlet demo
   hosts: localhost
-  gather_facts: true
+  gather_facts: yes
   run_once: true
   vars:
     infra_project: demo-infra
     user_openshift: developer
-    user_gogs_admin: gogs
-    user_gogs_user: developer
-    user_gogs_password: openshift
     openshift_cli: /usr/local/bin/oc
-    github_repo: https://github.com/tqvarnst/reactive-vs-servlet.git
-    github_account: openshift-labs
-    github_ref: master
     istio_version: 0.6.0
     istio_options:
-    clean_init: false
+    minishift: true
   tasks:
-    - include_role:
+    - name: Setting up minishift
+      include_role:
+        name: minishift
+      tags: always
+      when: minishift
+
+    - name: Collecting facts about Openshift
+      include_role:
         name: openshift_common_facts
       tags: always
 
-    - include_role:
+    - name: Collecting fact about the demo
+      include_role:
         name: demo_common_facts
       tags: always
 
-    - set_fact:
-        gogs_hostname: gogs-{{ infra_project }}.{{ apps_hostname_suffix }}
-      tags: always
-
-
-#    - name: create infra project
-#      shell: "{{ openshift_cli }} new-project {{ infra_project }}"
-#      when: not infra_project_exists
-#      tags: always
-
-    # deploy nexus
-#    - import_role:
-#        name: openshift_sonatype_nexus
-#      vars:
-#        project_name: "{{ infra_project }}"
-#        nexus_image_version: 3.10.0
-#        nexus_max_memory: 6Gi
-#      when: not nexus_svc_exists
-#      tags: nexus
-#
-#    # deploy gogs
-#    - include_tasks: init_gogs.yml
-#      tags: gogs
-
-    # deploy istio and prod
-    - include_tasks: init_istio.yml
-      tags: istio
+    - name: Deploy istio-system
+      include_role:
+        name: istio-system
 
     # validate cluster
-    - name: check openjdk image stream installed
-      shell: "{{ openshift_cli }} get is redhat-openjdk18-openshift -n openshift"
-      register: jdk_imagestream_result
-      ignore_errors: true
-      tags: validate
-
     - name: Install openjdk image stream
-      shell: "{{ openshift_cli }} create -f https://raw.githubusercontent.com/openshift/openshift-ansible/release-3.9/roles/openshift_examples/files/examples/v3.9/xpaas-streams/jboss-image-streams.json -n openshift"
-      when: jdk_imagestream_result is failed
-      tags: validate
+      shell: "{{ openshift_cli }} get is redhat-openjdk18-openshift -n openshift || {{ openshift_cli }} create -f https://raw.githubusercontent.com/openshift/openshift-ansible/release-3.9/roles/openshift_examples/files/examples/v3.9/xpaas-streams/jboss-image-streams.json -n openshift"
+      register: jdk_imagestream_result
 
-# Populate inventory-dev template
-    - name: Install project coolstore project for each type
-      include_tasks: init_project.yml
-      vars:
-        project_suffix: "{{ gateway_type }}"
-      with_items:
-        - spring
-        - vertx
-      loop_control:
-          loop_var: gateway_type
+    - name: Setup access rights for Istio for the project
+      shell: |
+        {{ openshift_cli }} get project coolstore || {{ openshift_cli }} adm new-project coolstore --display-name='Coolstore' --admin='developer'
+        {{ openshift_cli }} adm policy add-scc-to-user privileged -z default -n coolstore
+        {{ openshift_cli }} adm policy add-scc-to-user anyuid -z default coolstore
+        {{ openshift_cli }} adm policy add-role-to-group view system:serviceaccounts -n coolstore
+        {{ openshift_cli }} adm policy add-role-to-user admin system:serviceaccount:coolstore:default -n coolstore
+        {{ openshift_cli }} adm policy add-role-to-user view -z default -n coolstore
+
+    - name: set istioctl kubeconfig
+      set_fact:
+        istio_options: "--kubeconfig {{ oc_kube_config }}"
+      when:
+        - oc_kube_config is defined
+        - oc_kube_config is not none
+        - oc_kube_config|trim() != ""
+
+    - name: Deploy inventory
+      shell: |
+        {{ openshift_cli }} get svc inventory -n coolstore || \
+        ( \
+          {{ openshift_cli }} apply -f <({{ istio_ctl }} kube-inject {{ istio_options }} -f files/inventory-deployment.yml) -n coolstore && \
+          {{ openshift_cli }} create -f files/inventory-service.yml -n coolstore;
+        )
+      args:
+        executable: /bin/bash
+
+    - name: Deploy catalog
+      shell: |
+        {{ openshift_cli }} get svc catalog -n coolstore || \
+        ( \
+          {{ openshift_cli }} apply -f <({{ istio_ctl }} kube-inject {{ istio_options }} -f files/catalog-deployment.yml) -n coolstore && \
+          {{ openshift_cli }} create -f files/catalog-service.yml -n coolstore;
+        )
+      args:
+        executable: /bin/bash
+
+    - name: Deploy gateway-spring
+      shell: |
+        {{ openshift_cli }} get svc gateway-spring -n coolstore || \
+        ( \
+          {{ openshift_cli }} apply -f <({{ istio_ctl }} kube-inject {{ istio_options }} -f files/gateway-spring-deployment.yml) -n coolstore && \
+          {{ openshift_cli }} create -f files/gateway-spring-service.yml -n coolstore; \
+          {{ openshift_cli }} expose svc/gateway-spring -n coolstore; \
+        )
+      args:
+        executable: /bin/bash
+
+    - name: Deploy web-spring
+      shell: |
+        {{ openshift_cli }} get svc web-spring -n coolstore || \
+        ( \
+          {{ openshift_cli }} apply -f <({{ istio_ctl }} kube-inject {{ istio_options }} -f files/web-spring-deployment.yml) -n coolstore && \
+          {{ openshift_cli }} create -f files/web-spring-service.yml -n coolstore; \
+          {{ openshift_cli }} expose svc/web-spring -n coolstore; \
+        )
+      args:
+        executable: /bin/bash
+
+    - name: Deploy gateway-vertx
+      shell: |
+        {{ openshift_cli }} get svc gateway-vertx -n coolstore || \
+        ( \
+          {{ openshift_cli }} apply -f <({{ istio_ctl }} kube-inject {{ istio_options }} -f files/gateway-vertx-deployment.yml) -n coolstore && \
+          {{ openshift_cli }} create -f files/gateway-vertx-service.yml -n coolstore; \
+          {{ openshift_cli }} expose svc/gateway-vertx -n coolstore; \
+        )
+      args:
+        executable: /bin/bash
+
+    - name: Deploy web-vertx
+      shell: |
+        {{ openshift_cli }} get svc web-vertx -n coolstore || \
+        ( \
+          {{ openshift_cli }} apply -f <({{ istio_ctl }} kube-inject {{ istio_options }} -f files/web-vertx-deployment.yml) -n coolstore && \
+          {{ openshift_cli }} create -f files/web-vertx-service.yml -n coolstore; \
+          {{ openshift_cli }} expose svc/web-vertx -n coolstore; \
+        )
+      args:
+        executable: /bin/bash

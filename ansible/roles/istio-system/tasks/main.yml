@@ -2,7 +2,7 @@
 - name: check if istio deployed 
   shell: "{{ openshift_cli }} get project istio-system"
   register: istio_project_result
-  ignore_errors: true
+  failed_when: false
   changed_when: false
 
 - name: create temporary istio directory
@@ -29,9 +29,6 @@
   set_fact:
     istio_ctl: "{{ istio_dir.path }}/istio-{{ istio_version }}/bin/istioctl"
 
-- debug:
-    msg: "istio_ctl = {{ istio_ctl }}"
-
 - name: setup istio-system project
   shell: |
     {{ openshift_cli }} new-project istio-system
@@ -50,7 +47,7 @@
     {{ openshift_cli }} adm policy add-scc-to-user anyuid      -z default                          -n istio-system
     {{ openshift_cli }} adm policy add-scc-to-user privileged  -z default                          -n istio-system
     {{ openshift_cli }} adm policy add-cluster-role-to-user  cluster-admin  -z default             -n istio-system
-  when: istio_project_result|failed
+  when: istio_project_result.rc!=0
 
 - name: deploy istio and jaeger
   shell: |
@@ -64,6 +61,6 @@
     {{ openshift_cli }} expose svc jaeger-query  -n istio-system
     {{ openshift_cli }} expose svc istio-ingress -n istio-system
     {{ openshift_cli }} expose svc prometheus    -n istio-system
-  when: istio_project_result|failed
+  when: istio_project_result.rc!=0
 
 

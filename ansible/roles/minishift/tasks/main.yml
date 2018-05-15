@@ -1,0 +1,33 @@
+---
+
+- name: Check minishift version
+  shell: minishift version | grep ^CDK | grep -q {{ minishift_version }}
+  changed_when: false
+
+- name: Set and configure the minishift profile
+  shell: |
+    minishift profile set {{ minishift_profile }}
+    minishift config set cpus {{ minishift_config_cpus }}
+    minishift config set image-caching {{ minishift_config_image_caching }}
+    minishift config set memory {{ minishift_config_memory }}
+    minishift config set vm-driver {{ minishift_config_vm_driver }}
+
+- name: Start minishift
+  shell: minishift start
+  register: result
+  changed_when: "'already running' not in result.stdout"
+
+# This is currently required for running istio in Minishift CDK
+- name: Disable SELinux
+  shell: minishift ssh -- sudo setenforce 0
+  when: disable_selinux
+
+- name: Login to the server
+  shell: oc login $(minishift console --url) -u {{ oc_become_user }} -p anypass --insecure-skip-tls-verify=false
+  when: oc_become_user!="developer"
+
+
+
+
+
+

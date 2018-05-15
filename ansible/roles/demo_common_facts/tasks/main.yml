@@ -1,27 +1,31 @@
 ---
-# Common Facts for 
+# Common Facts for the project
 - name: Check if infra project exists
-  shell: "{{ openshift_cli }} get projects | grep -q {{ infra_project }} && echo true || echo false"
-  register: cmd_output
+  shell: "{{ openshift_cli }} get projects | grep -q {{ infra_project }}"
+  register: cmd_infra_project_exists
+  failed_when: false
+  changed_when: false
 
 - set_fact:
     infra_project_exists: true
-  when: cmd_output.stdout == "true"
+  when: cmd_infra_project_exists is succeeded
 
 - set_fact:
     infra_project_exists: false
-  when: cmd_output.stdout != "true"
+  when: cmd_infra_project_exists is failed
    
 - name: Check if nexus is alread installed
-  shell: "{{ openshift_cli }} get service nexus -n {{ infra_project }} && echo installed || echo not_installed"
-  register: cmd_output
+  shell: "{{ openshift_cli }} get service nexus -n {{ infra_project }}"
+  register: cmd_nexus_svc_exists
+  failed_when: false
+  changed_when: false
 
 - set_fact:
     nexus_svc_exists: true
-  when: cmd_output.stdout == "not_installed"
+  when: cmd_nexus_svc_exists is succeeded
 
 - set_fact:
     nexus_svc_exists: false
-  when: cmd_output.stdout != "installed"
+  when: cmd_nexus_svc_exists is failed
 
 

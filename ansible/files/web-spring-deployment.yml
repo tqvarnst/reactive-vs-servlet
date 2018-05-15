@@ -1,0 +1,56 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: web-spring
+    version: v1
+  name: web-spring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-spring
+      version: v1
+  template:
+    metadata:
+      labels:
+        app: web-spring
+        version: v1
+    spec:
+      containers:
+      - name: web-spring
+        env:
+        - name: COOLSTORE_GW_ENDPOINT
+          value: gateway-spring-coolstore
+        - name: HOSTNAME_HTTP
+          value: web-spring:8080
+        image: coolstore/web:latest
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          exec:
+            command:
+            - curl
+            - localhost:8080/index.html
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 1
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        - containerPort: 8778
+          name: jolokia
+          protocol: TCP
+        - containerPort: 9779
+          name: prometheus
+          protocol: TCP
+        readinessProbe:
+          exec:
+            command:
+            - curl
+            - localhost:8080/index.html
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 1
+        securityContext:
+          privileged: false

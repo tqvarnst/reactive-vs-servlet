@@ -1,0 +1,11 @@
+---
+- name: Controll minishift
+  hosts: localhost
+  gather_facts: no
+  run_once: true
+  vars:
+  tasks:
+    - name: Setting up minishift
+      include_role:
+        name: minishift
+
