@@ -47,8 +47,8 @@ For load-testing we will use a tool called **Siege**.
 1. Run the ansible playbook:
 
     ```shell
-    ansible-galaxy install -r requirements.yml
-    ansible-playbook init.yml
+    ansible-galaxy install -r ansible/requirements.yml
+    ansible-playbook ansible/init.yml
     ```
 
 2. Done!
@@ -64,6 +64,6 @@ For load-testing we will use a tool called **Siege**.
 2. Run the ansible playbook:
 
     ```shell
-    ansible-galaxy install -r requirements.yml
-    ansible-playbook init.yml -e minishift=false
+    ansible-galaxy install -r ansible/requirements.yml
+    ansible-playbook ansible/init.yml -e minishift=false
     ```   
