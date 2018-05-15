@@ -10,6 +10,7 @@
     istio_version: 0.6.0
     istio_options:
     minishift: true
+    openjdk_is_definition: https://raw.githubusercontent.com/openshift/openshift-ansible/release-3.9/roles/openshift_examples/files/examples/v3.9/xpaas-streams/openjdk18-image-stream.json
   tasks:
     - name: Setting up minishift
       include_role:
@@ -33,7 +34,7 @@
 
     # validate cluster
     - name: Install openjdk image stream
-      shell: "{{ openshift_cli }} get is redhat-openjdk18-openshift -n openshift || {{ openshift_cli }} create -f https://raw.githubusercontent.com/openshift/openshift-ansible/release-3.9/roles/openshift_examples/files/examples/v3.9/xpaas-streams/jboss-image-streams.json -n openshift"
+      shell: "{{ openshift_cli }} get is redhat-openjdk18-openshift -n openshift || {{ openshift_cli }} create -f {{ openjdk_is_definition }} -n openshift"
       register: jdk_imagestream_result
 
     - name: Setup access rights for Istio for the project
