@@ -47,6 +47,7 @@
     {{ openshift_cli }} adm policy add-scc-to-user anyuid      -z default                          -n istio-system
     {{ openshift_cli }} adm policy add-scc-to-user privileged  -z default                          -n istio-system
     {{ openshift_cli }} adm policy add-cluster-role-to-user  cluster-admin  -z default             -n istio-system
+    {{ openshift_cli }} adm policy add-role-to-user view developer                                 -n istio-system
   when: istio_project_result.rc!=0
 
 - name: deploy istio and jaeger

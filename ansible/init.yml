@@ -21,12 +21,6 @@
     - name: Collecting facts about Openshift
       include_role:
         name: openshift_common_facts
-      tags: always
-
-    - name: Collecting fact about the demo
-      include_role:
-        name: demo_common_facts
-      tags: always
 
     - name: Deploy istio-system
       include_role:
