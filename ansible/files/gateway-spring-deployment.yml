@@ -31,7 +31,7 @@ spec:
         - name: JAEGER_SAMPLER_TYPE
           value: const
         - name: JAEGER_SAMPLER_PARAM
-          value: 1
+          value: 10
         image: coolstore/gateway-spring:latest
         imagePullPolicy: IfNotPresent
         livenessProbe:
