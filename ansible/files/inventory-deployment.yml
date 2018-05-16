@@ -20,7 +20,7 @@ spec:
       containers:
       - name: inventory
         image: docker.io/coolstore/inventory:latest
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         livenessProbe:
           exec:
             command:

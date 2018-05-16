@@ -20,7 +20,7 @@ spec:
       containers:
       - name: catalog
         image: docker.io/coolstore/catalog:latest
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         livenessProbe:
           exec:
             command:
