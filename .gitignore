@@ -33,3 +33,6 @@ hs_err_pid*
 ansible/roles/openshift_common_facts
 ansible/*.retry
 
+# Go
+*-app
+
