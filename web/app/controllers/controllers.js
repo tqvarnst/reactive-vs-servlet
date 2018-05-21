@@ -61,7 +61,9 @@ angular.module('app')
                         Notifications.error("Error retrieving products: " + data.error);
                         return;
                     }
-                    
+
+                    data = data.sort(function(a,b) { return a.itemId - b.itemId });
+
                     $scope.products = data.map(function (el) {
                         return {
                             quantity: "1",

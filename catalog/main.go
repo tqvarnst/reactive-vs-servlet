@@ -12,7 +12,7 @@ import (
 type Product struct {
 	ItemID string  `json:"itemId,omitempty"`
 	Name   string  `json:"name,omitempty"`
-	Desc   string  `json:"Desc,omitempty"`
+	Desc   string  `json:"desc,omitempty"`
 	Price  float32 `json:"price,omitempty"`
 }
 

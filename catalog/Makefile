@@ -34,13 +34,13 @@ build-linux:
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(BINARY_LINUX) -v
 
 # Docker
-docker-build:
+docker-build: build
 	docker build -t catalog .
 
-docker-run:
-	docker run -it -p 8080:8080 catalog:latest 
+docker-run: docker-build
+	docker run -it -p 8000:8080 catalog:latest
 
-docker-push:
+docker-push: docker-build
 	docker tag catalog:latest coolstore/catalog:latest
 	docker push coolstore/catalog:latest
 
