@@ -9,3 +9,4 @@ spec:
   route:
   - labels:
       version: vertx
+    weight: 100
