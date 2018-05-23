@@ -4,7 +4,7 @@ public class Product {
 
     private String itemId;
     private String name;
-    private String description;
+    private String desc;
     private double price;
     private Inventory availability;
 
@@ -24,12 +24,12 @@ public class Product {
         this.name = name;
     }
 
-    public String getDescription() {
-        return description;
+    public String getDesc() {
+        return desc;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setDesc(String desc) {
+        this.desc = desc;
     }
 
     public double getPrice() {
