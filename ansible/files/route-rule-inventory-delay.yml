@@ -5,7 +5,7 @@ metadata:
 spec:
   destination:
     name: inventory
-  precedence: 1
+  precedence: 10
   route:
   - labels:
       app: inventory
