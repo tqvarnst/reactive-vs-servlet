@@ -1,0 +1,14 @@
+---
+- name: Changing the route to use spring
+  hosts: localhost
+  gather_facts: no
+  run_once: true
+  vars:
+    openshift_cli: /usr/local/bin/oc
+   tasks:
+    - name: Set the route to Spring
+      shell: |
+        {{ openshift_cli }} replace -f files/route-rute-gateway-spring.yml --force
+      args:
+        executable: /bin/bash
+

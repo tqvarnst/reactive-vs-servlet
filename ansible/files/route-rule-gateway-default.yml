@@ -1,12 +1,14 @@
 apiVersion: config.istio.io/v1alpha2
 kind: RouteRule
 metadata:
-  name: gateway-route-vertx
+  name: gateway-route-default
 spec:
   destination:
     name: gateway
-  precedence: 2
+  precedence: 1
   route:
     - labels:
-        type: vertx
+        type: spring
+      weight: 100
+
 

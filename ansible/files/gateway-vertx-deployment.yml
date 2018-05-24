@@ -3,19 +3,19 @@ kind: Deployment
 metadata:
   labels:
     app: gateway
-    version: vertx
+    type: vertx
   name: gateway-vertx
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: gateway
-      version: vertx
+      type: vertx
   template:
     metadata:
       labels:
         app: gateway
-        version: vertx
+        type: vertx
     spec:
       containers:
       - name: gateway-vertx

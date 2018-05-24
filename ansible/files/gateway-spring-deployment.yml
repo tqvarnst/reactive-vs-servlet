@@ -3,19 +3,19 @@ kind: Deployment
 metadata:
   labels:
     app: gateway
-    version: spring
+    type: spring
   name: gateway-spring
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: gateway
-      version: spring
+      type: spring
   template:
     metadata:
       labels:
         app: gateway
-        version: spring
+        type: spring
     spec:
       containers:
       - name: gateway-spring

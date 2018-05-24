@@ -21,7 +21,7 @@ spec:
       - name: web
         env:
         - name: COOLSTORE_GW_ENDPOINT
-          value: gateway-coolstore
+          value: coolstore
         - name: HOSTNAME_HTTP
           value: web:8080
         image: coolstore/web:latest

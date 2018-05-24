@@ -106,3 +106,17 @@
         )
       args:
         executable: /bin/bash
+
+    - name: Deploy ingress-route and default route
+      shell: |
+        {{ openshift_cli }} replace -f files/ingress-routes.yml --force -n coolstore && \
+        {{ openshift_cli }} replace -f files/route-rule-gateway-default.yml --force -n coolstore
+      args:
+        executable: /bin/bash
+
+    - name: Set current project to coolstore
+      shell: |
+        {{ openshift_cli }} project coolstore
+      args:
+        executable: /bin/bash
+

@@ -110,7 +110,12 @@ public class GatewayVerticle extends AbstractVerticle {
                                 .toList().toSingle()
                 )
                 .subscribe(
-                        list -> rc.response().end(Json.encodePrettily(list)),
+                        list -> {
+                            JsonObject response = new JsonObject();
+                            response.put("reactive",true);
+                            response.put("products",list);
+                            rc.response().end(response.encode());
+                        },
                         error -> rc.response().end(new JsonObject().put("error", error.getMessage()).toString())
                 );
     }
