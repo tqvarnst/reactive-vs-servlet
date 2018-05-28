@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: web-vertx
+  name: gateway
   labels:
-    app: web-vertx
+    app: gateway
 spec:
   ports:
   - name: http
     port: 8080
   selector:
-    app: web-vertx
+    app: gateway

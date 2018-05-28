@@ -55,6 +55,8 @@ For load-testing we will use a tool called **Siege**.
 
 ## Installation
 
+1. Clone this repo `git clone https://github.com/tqvarnst/reactive-vs-servlet.git && reactive-vs-servlet`
+
 **For Minishift use:** 
 
 1. Run the ansible playbook:
@@ -82,7 +84,7 @@ For load-testing we will use a tool called **Siege**.
     ansible-galaxy install -r requirements.yml
     ansible-playbook init.yml -e minishift=false -e openshift_cli=$(which oc)
     ```   
-3. Done!
+    3. Done!
 
 ## To run the demo
 
@@ -95,12 +97,33 @@ I strongly recommend that you find your own way to present this demo, but below 
     - **Catalog** - A service that returns a list of products that are currently offered on the web site.
     - **Inventory** - A service that returns the inventory status for a product.
     - **Gateway-XXX** - There are two different version of this service that is acting as a microservices gateway and aggregates content from the catalog service and then calls the inventory service to collect the inventory status for each product. One is implemented using **Spring-Boot** and the other one using **Eclipse Vert.x**.
-    - **Web-XXX** - There are two different version of the web service. One that will connect to the **gateway-spring** service and one that connects to the **gateway-vertx** service.  
+    - **Web** - The web project is a NodeJS application that serve as a web server. 
+    - **Istio Ingress** - The ingress router is what exposes the application to the outside (from OpenShift)
+    - **Istio Route rule** - The istio route rules will route traffic from the Gateway service to either the spring-boot pod or the vertx-pod. Default this will be using the Spring Boot route
+    - **Istio Delay route rule** - This is a fault injection route where a delay is introduced between the gateway and the inventory service. This rule is used to test how the application behaves when inventory is starting to respond slower.  
 
-1. Click on both the **web-spring** and **web-vertx** exposed routes and show that both renders a web page with products, including inventory information.
+1. Open a browser to the application using the following command
+
+    **For Minishift:**
+
+    `minishift openshift service istio-ingress -n istio-system --in-browser`
     
-    - Reload both pages a couple of times to show that respond similarly. 
+    **For standard OpenShift installations:** 
     
+    Open the a browser to the result of the following command: `oc get route istio-ingress -n istio-system -o jsonpath="{.spec.host}"`
+    
+    Reload the pages a couple of times to show that respond similarly. 
+
+1. Show the Istio route rule pointing to Spring
+
+    `oc get routerule gateway-route-default -o yaml`
+    
+1. Replace the current rule with vert.x
+
+    `oc replace -f ansible/files/route-rule-gateway-vertx.yml`
+    
+1. Reload the browser tab pointing to the application and see how the **We are Reactive** logo in the right upper corner. Reload a couple of more times. 
+     
 1. Open the **Jaeger UI** in a browser
 
    **For Minishift use:**
@@ -111,19 +134,25 @@ I strongly recommend that you find your own way to present this demo, but below 
    
    Run `oc get route jaeger-query -n istio-system -o jsonpath='{.status.ingress[0].host}{"\n"}'` to get the URL
    
-1. Select service **gateway-spring** and click find trace.
+1. Select service **gateway** and find a trace that is lists 
 
-1. Select a trace that contains **gateway-spring**, **catalog** and **inventory**.
+1. Select a trace that contains **gateway-spring**, **catalog** and **inventory**
 
 1. Review the call graph and see how request to **inventory** are called in sequence.
 
-1. Repeat for service **gateway-vertx** and see how the request are called in parallel.
+1. Repeat for trace that **doesn't** contain **gateway-spring**, but **does** contain **gateway**, **catalog** and **inventory**  and see how the request are called in parallel.
 
+1. Switch back to use the **Spring-boot** version of the gateway. 
+
+    `oc replace -f ansible/files/route-rule-gateway-spring.yml`
+    
+1. Introduce a delay to the inventory service
+
+    `oc create -f ansible/files/route-rule-inventory-delay.yml`
+    
 1. Open a terminal and run the following command to start putting load on the **Spring** gateway.
 
-    ```shell
-    siege -r 40 -c 20 $(oc get route gateway-spring -n coolstore -o jsonpath='{.status.ingress[0].host}{"\n"}')/api/products
-    ```
+    `siege -r 10 -c 10 $(oc get route istio-ingress -n istio-system -o jsonpath="{.spec.host}")/api/products`
     
     This should produce a mixture of **200** and **504** and print a summary that looks like this:
     
@@ -144,13 +173,15 @@ I strongly recommend that you find your own way to present this demo, but below 
     
     **NOTE:** You might see much higher or lower availability depending on how fast your system is. Try increasing or decressing the number of users (E.g. `-c`) im the command above if you are not seeing similar results.
     
-1. Point out that even though **Spring-Boot** responds fast, but there are also a high number of failed calls.     
-         
-1. Now, repeat the same for **Eclipse Vert.x** using the following command:
+1. Point out that even though **Spring-Boot** responds fast, but there are also a high number of failed calls.
 
-    ```shell
-        siege -r 40 -c 20 $(oc get route gateway-vertx -n coolstore -o jsonpath='{.status.ingress[0].host}{"\n"}')/api/products
-    ```
+1. Switch to the Vert.x version
+
+    `oc replace -f ansible/files/route-rule-gateway-vertx.yml`     
+         
+1. Now, repeat the same test for **Eclipse Vert.x** using the same command:
+
+    `siege -r 10 -c 10 $(oc get route istio-ingress -n istio-system -o jsonpath="{.spec.host}")/api/products`
     
     This should produce a result with only **200** and print a summary that looks like this:
     

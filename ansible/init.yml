@@ -4,7 +4,6 @@
   gather_facts: yes
   run_once: true
   vars:
-    infra_project: demo-infra
     user_openshift: developer
     openshift_cli: /usr/local/bin/oc
     istio_version: 0.6.0
@@ -72,20 +71,7 @@
       shell: |
         {{ openshift_cli }} get svc gateway-spring -n coolstore || \
         ( \
-          {{ openshift_cli }} apply -f <({{ istio_ctl }} kube-inject {{ istio_options }} -f files/gateway-spring-deployment.yml) -n coolstore && \
-          {{ openshift_cli }} create -f files/gateway-spring-service.yml -n coolstore; \
-          {{ openshift_cli }} expose svc/gateway-spring -n coolstore; \
-        )
-      args:
-        executable: /bin/bash
-
-    - name: Deploy web-spring
-      shell: |
-        {{ openshift_cli }} get svc web-spring -n coolstore || \
-        ( \
-          {{ openshift_cli }} apply -f <({{ istio_ctl }} kube-inject {{ istio_options }} -f files/web-spring-deployment.yml) -n coolstore && \
-          {{ openshift_cli }} create -f files/web-spring-service.yml -n coolstore; \
-          {{ openshift_cli }} expose svc/web-spring -n coolstore; \
+          {{ openshift_cli }} apply -f <({{ istio_ctl }} kube-inject {{ istio_options }} -f files/gateway-spring-deployment.yml) -n coolstore \
         )
       args:
         executable: /bin/bash
@@ -94,20 +80,42 @@
       shell: |
         {{ openshift_cli }} get svc gateway-vertx -n coolstore || \
         ( \
-          {{ openshift_cli }} apply -f <({{ istio_ctl }} kube-inject {{ istio_options }} -f files/gateway-vertx-deployment.yml) -n coolstore && \
-          {{ openshift_cli }} create -f files/gateway-vertx-service.yml -n coolstore; \
-          {{ openshift_cli }} expose svc/gateway-vertx -n coolstore; \
+          {{ openshift_cli }} apply -f <({{ istio_ctl }} kube-inject {{ istio_options }} -f files/gateway-vertx-deployment.yml) -n coolstore \
         )
       args:
         executable: /bin/bash
 
-    - name: Deploy web-vertx
+    - name: Deploy gateway-service
       shell: |
-        {{ openshift_cli }} get svc web-vertx -n coolstore || \
+        {{ openshift_cli }} get svc gateway -n coolstore || \
         ( \
-          {{ openshift_cli }} apply -f <({{ istio_ctl }} kube-inject {{ istio_options }} -f files/web-vertx-deployment.yml) -n coolstore && \
-          {{ openshift_cli }} create -f files/web-vertx-service.yml -n coolstore; \
-          {{ openshift_cli }} expose svc/web-vertx -n coolstore; \
+          {{ openshift_cli }} create -f files/gateway-service.yml -n coolstore; \
+          {{ openshift_cli }} expose svc/gateway -n coolstore; \
         )
       args:
         executable: /bin/bash
+
+    - name: Deploy web
+      shell: |
+        {{ openshift_cli }} get svc web -n coolstore || \
+        ( \
+          {{ openshift_cli }} apply -f <({{ istio_ctl }} kube-inject {{ istio_options }} -f files/web-deployment.yml) -n coolstore && \
+          {{ openshift_cli }} create -f files/web-service.yml -n coolstore; \
+          {{ openshift_cli }} expose svc/web -n coolstore; \
+        )
+      args:
+        executable: /bin/bash
+
+    - name: Deploy ingress-route and default route
+      shell: |
+        {{ openshift_cli }} replace -f files/ingress-routes.yml --force -n coolstore && \
+        {{ openshift_cli }} replace -f files/route-rule-gateway-spring.yml --force -n coolstore
+      args:
+        executable: /bin/bash
+
+    - name: Set current project to coolstore
+      shell: |
+        {{ openshift_cli }} project coolstore
+      args:
+        executable: /bin/bash
+

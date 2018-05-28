@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: gateway-spring
+  name: web
   labels:
-    app: gateway-spring
+    app: web
 spec:
   ports:
   - name: http
     port: 8080
   selector:
-    app: gateway-spring
+    app: web

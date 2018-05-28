@@ -60,7 +60,7 @@
     {{ openshift_cli }} expose svc grafana       -n istio-system
     {{ openshift_cli }} expose svc servicegraph  -n istio-system
     {{ openshift_cli }} expose svc jaeger-query  -n istio-system
-    {{ openshift_cli }} expose svc istio-ingress -n istio-system
+    {{ openshift_cli }} expose svc istio-ingress -n istio-system --hostname=coolstore.{{apps_hostname_suffix}}
     {{ openshift_cli }} expose svc prometheus    -n istio-system
   when: istio_project_result.rc!=0
 

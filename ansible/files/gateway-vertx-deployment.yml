@@ -2,20 +2,20 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   labels:
-    app: gateway-vertx
-    version: v1
+    app: gateway
+    type: vertx
   name: gateway-vertx
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: gateway-vertx
-      version: v1
+      app: gateway
+      type: vertx
   template:
     metadata:
       labels:
-        app: gateway-vertx
-        version: v1
+        app: gateway
+        type: vertx
     spec:
       containers:
       - name: gateway-vertx

@@ -2,20 +2,20 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   labels:
-    app: gateway-spring
-    version: v1
+    app: gateway
+    type: spring
   name: gateway-spring
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: gateway-spring
-      version: v1
+      app: gateway
+      type: spring
   template:
     metadata:
       labels:
-        app: gateway-spring
-        version: v1
+        app: gateway
+        type: spring
     spec:
       containers:
       - name: gateway-spring

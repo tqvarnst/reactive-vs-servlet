@@ -3,12 +3,14 @@
 angular.module("app")
 
 .factory('catalog', ['$http', '$q', 'COOLSTORE_CONFIG', 'Auth', '$location', function($http, $q, COOLSTORE_CONFIG, $auth, $location) {
-	var factory = {}, products, baseUrl;
+	var factory = {}, products, runtime, productsUrl, runtimeUrl;
 
 	if ($location.protocol() === 'https') {
-		baseUrl = (COOLSTORE_CONFIG.SECURE_API_ENDPOINT.startsWith("https://") ? COOLSTORE_CONFIG.SECURE_API_ENDPOINT : "https://" + COOLSTORE_CONFIG.SECURE_API_ENDPOINT + '.' + $location.host().replace(/^.*?\.(.*)/g,"$1")) + '/api/products';
+		productsUrl = (COOLSTORE_CONFIG.SECURE_API_ENDPOINT.startsWith("https://") ? COOLSTORE_CONFIG.SECURE_API_ENDPOINT : "https://" + COOLSTORE_CONFIG.SECURE_API_ENDPOINT + '.' + $location.host().replace(/^.*?\.(.*)/g,"$1")) + '/api/products';
+        runtimeUrl = (COOLSTORE_CONFIG.SECURE_API_ENDPOINT.startsWith("https://") ? COOLSTORE_CONFIG.SECURE_API_ENDPOINT : "https://" + COOLSTORE_CONFIG.SECURE_API_ENDPOINT + '.' + $location.host().replace(/^.*?\.(.*)/g,"$1")) + '/api/runtime';
 	} else {
-		baseUrl = (COOLSTORE_CONFIG.API_ENDPOINT.startsWith("http://") ? COOLSTORE_CONFIG.API_ENDPOINT : "http://" + COOLSTORE_CONFIG.API_ENDPOINT + '.' + $location.host().replace(/^.*?\.(.*)/g,"$1")) + '/api/products';
+		productsUrl = (COOLSTORE_CONFIG.API_ENDPOINT.startsWith("http://") ? COOLSTORE_CONFIG.API_ENDPOINT : "http://" + COOLSTORE_CONFIG.API_ENDPOINT + '.' + $location.host().replace(/^.*?\.(.*)/g,"$1")) + '/api/products';
+        runtimeUrl = (COOLSTORE_CONFIG.API_ENDPOINT.startsWith("http://") ? COOLSTORE_CONFIG.API_ENDPOINT : "http://" + COOLSTORE_CONFIG.API_ENDPOINT + '.' + $location.host().replace(/^.*?\.(.*)/g,"$1")) + '/api/runtime';
 	}
 
     factory.getProducts = function() {
@@ -18,16 +20,30 @@ angular.module("app")
         } else {
             $http({
                 method: 'GET',
-								url: baseUrl
-            }).then(function(resp) {
-                products = resp.data;
-                deferred.resolve(resp.data);
+                url: productsUrl
+            }).then(function(response) {
+                products = response.data;
+                deferred.resolve(products);
             }, function(err) {
                 deferred.reject(err);
             });
         }
 	   return deferred.promise;
 	};
+
+    factory.getRuntime = function() {
+        var deferred = $q.defer();
+        $http({
+            method: 'GET',
+            url: runtimeUrl
+        }).then(function(response) {
+            runtime = response.data;
+            deferred.resolve(runtime);
+        }, function(err) {
+            deferred.reject(err);
+        });
+        return deferred.promise;
+    };
 
 	return factory;
 }]);

@@ -2,30 +2,30 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   labels:
-    app: web-vertx
+    app: web
     version: v1
-  name: web-vertx
+  name: web
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: web-vertx
+      app: web
       version: v1
   template:
     metadata:
       labels:
-        app: web-vertx
+        app: web
         version: v1
     spec:
       containers:
-      - name: web-vertx
+      - name: web
         env:
         - name: COOLSTORE_GW_ENDPOINT
-          value: gateway-vertx-coolstore
+          value: coolstore
         - name: HOSTNAME_HTTP
-          value: web-vertx:8080
-        image: coolstore/web:latest
-        imagePullPolicy: IfNotPresent
+          value: web:8080
+        image: docker.io/coolstore/web:latest
+        imagePullPolicy: Always
         livenessProbe:
           exec:
             command:
