@@ -24,8 +24,8 @@ spec:
           value: coolstore
         - name: HOSTNAME_HTTP
           value: web:8080
-        image: coolstore/web:latest
-        imagePullPolicy: IfNotPresent
+        image: docker.io/coolstore/web:latest
+        imagePullPolicy: Always
         livenessProbe:
           exec:
             command:

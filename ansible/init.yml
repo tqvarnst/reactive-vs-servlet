@@ -4,7 +4,6 @@
   gather_facts: yes
   run_once: true
   vars:
-    infra_project: demo-infra
     user_openshift: developer
     openshift_cli: /usr/local/bin/oc
     istio_version: 0.6.0
@@ -110,7 +109,7 @@
     - name: Deploy ingress-route and default route
       shell: |
         {{ openshift_cli }} replace -f files/ingress-routes.yml --force -n coolstore && \
-        {{ openshift_cli }} replace -f files/route-rule-gateway-default.yml --force -n coolstore
+        {{ openshift_cli }} replace -f files/route-rule-gateway-spring.yml --force -n coolstore
       args:
         executable: /bin/bash
 

@@ -8,12 +8,11 @@ spec:
   rules:
   - http:
       paths:
-      - path: /api/products
+      - path: /api/.*
         backend:
           serviceName: gateway
           servicePort: http
-  - http:
-        paths:
-        - backend:
-            serviceName: web
-            servicePort: http
+      - path: /.*
+        backend:
+          serviceName: web
+          servicePort: http

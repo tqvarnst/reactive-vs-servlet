@@ -6,6 +6,7 @@ import org.springframework.cloud.netflix.feign.EnableFeignClients;
 import org.springframework.stereotype.Controller;
 
 import javax.servlet.*;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 

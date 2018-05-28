@@ -2,6 +2,9 @@ package com.redhat.cloudnative.coolstore.gw;
 
 import com.redhat.cloudnative.coolstore.gw.model.Product;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,7 +15,7 @@ import java.util.List;
 
 @Controller
 @RequestMapping("/api")
-@CrossOrigin
+@CrossOrigin(allowedHeaders = {"Runtime"})
 public class GatewayService {
 
     @Autowired
@@ -23,13 +26,19 @@ public class GatewayService {
 
     @ResponseBody
     @GetMapping("/products")
-    public List<Product> readAll() {
+    public ResponseEntity<List<Product>> readAll() {
         List<Product> productList = productClient.getProducts();
         productList.stream()
                 .forEach(p -> {
                     p.setAvailability(inventoryClient.getInventory(p.getItemId()));
                 });
-        return productList;
+        return new ResponseEntity<>(productList, HttpStatus.OK);
+    }
+
+    @ResponseBody
+    @GetMapping("/runtime")
+    public ResponseEntity<String> runtime() {
+        return new ResponseEntity<String>("{ \"name\": \"spring-boot\" }", HttpStatus.OK);
     }
 
 }

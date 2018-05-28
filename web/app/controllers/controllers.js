@@ -72,6 +72,22 @@ angular.module('app')
                     })
                 }, function (err) {
                     Notifications.error("Error retrieving products: " + err.statusText);
+
+                });
+
+                // get runtime
+                catalog.getRuntime().then(function (data) {
+                    if (data.error != undefined && data.error != "") {
+                        Notifications.error("Error retrieving runtime: " + data.error);
+                        return;
+                    }
+                    console.log("Successfully retrieved runtime data");
+                    console.log(data);
+                    $scope.runtime = data;
+
+                }, function (err) {
+                    Notifications.error("Error retrieving runtime: " + err.statusText);
+
                 });
 
 
