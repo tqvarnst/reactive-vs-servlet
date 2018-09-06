@@ -63,8 +63,8 @@ For load-testing we will use a tool called **Siege**.
 
     ```shell
     cd ansible
-    ansible-galaxy install -r requirements.yml -e openshift_cli=$(which oc)
-    ansible-playbook init.yml
+    ansible-galaxy install -r requirements.yml 
+    ansible-playbook init.yml -e openshift_cli=$(which oc)
     ```
 
 2. Done!
