@@ -52,7 +52,7 @@
         <dependency>
             <groupId>io.opentracing.contrib</groupId>
             <artifactId>opentracing-spring-cloud-starter</artifactId>
-            <version>RELEASE</version>
+            <version>0.1.12</version>
         </dependency>
         <dependency>
             <groupId>com.uber.jaeger</groupId>
