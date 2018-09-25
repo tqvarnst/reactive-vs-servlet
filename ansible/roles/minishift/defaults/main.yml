@@ -1,9 +1,9 @@
 minishift_profile: reactive-vs-servlet
-minishift_version: v3.4
+minishift_version: v3.5
 disable_selinux: true
 minishift_config_cpus: 6
 minishift_config_image_caching: true
 minishift_config_memory: 8192
 minishift_config_vm_driver: xhyve
-oc_become_user: admin
+oc_become_user: developer
 enable_istio: true

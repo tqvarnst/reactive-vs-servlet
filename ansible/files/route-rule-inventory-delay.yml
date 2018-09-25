@@ -11,5 +11,5 @@ spec:
       app: inventory
   httpFault:
     delay:
-      percent: 100
+      percent: 50
       fixedDelay: 200ms

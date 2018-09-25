@@ -23,8 +23,8 @@
   when: disable_selinux
 
 - name: Login to the server
-  shell: oc login $(minishift console --url) -u {{ oc_become_user }} -p anypass --insecure-skip-tls-verify=false
-  when: oc_become_user!="developer"
+  shell: oc login $(minishift console --url) -u system:admin --insecure-skip-tls-verify=false
+#  when: oc_become_user!="developer"
 
 
 
