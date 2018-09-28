@@ -6,8 +6,6 @@
   vars:
     user_openshift: developer
     openshift_cli: /usr/local/bin/oc
-    istio_version: 0.6.0
-    istio_options:
     minishift: true
     openjdk_is_definition: https://raw.githubusercontent.com/openshift/openshift-ansible/release-3.9/roles/openshift_examples/files/examples/v3.9/xpaas-streams/openjdk18-image-stream.json
   tasks:
@@ -34,10 +32,10 @@
       shell: |
         {{ openshift_cli }} get project coolstore || {{ openshift_cli }} adm new-project coolstore --display-name='Coolstore' --admin='developer'
         {{ openshift_cli }} adm policy add-scc-to-user privileged -z default -n coolstore
-        {{ openshift_cli }} adm policy add-scc-to-user anyuid -z default coolstore
         {{ openshift_cli }} adm policy add-role-to-group view system:serviceaccounts -n coolstore
-        {{ openshift_cli }} adm policy add-role-to-user admin system:serviceaccount:coolstore:default -n coolstore
         {{ openshift_cli }} adm policy add-role-to-user view -z default -n coolstore
+        # {{ openshift_cli }} adm policy add-scc-to-user anyuid -z default coolstore
+        # {{ openshift_cli }} adm policy add-role-to-user admin system:serviceaccount:coolstore:default -n coolstore
 
     - name: set istioctl kubeconfig
       set_fact:
@@ -46,6 +44,16 @@
         - oc_kube_config is defined
         - oc_kube_config is not none
         - oc_kube_config|trim() != ""
+
+    # - name: Deploy inventory
+    #   shell: |
+    #     {{ openshift_cli }} get svc inventory -n coolstore > /dev/null 2>&1 || \
+    #     ( \
+    #       {{ openshift_cli }} apply -f <({{ istio_ctl }} kube-inject {{ istio_options }} -f files/inventory-deployment.yml) -n coolstore && \
+    #       {{ openshift_cli }} create -f files/inventory-service.yml -n coolstore
+    #     )
+    #   args:
+    #     executable: /bin/bash
 
     - name: Deploy inventory
       shell: |
@@ -69,7 +77,7 @@
 
     - name: Deploy gateway-spring
       shell: |
-        {{ openshift_cli }} get svc gateway-spring -n coolstore || \
+        {{ openshift_cli }} get dc gateway-spring -n coolstore || \
         ( \
           {{ openshift_cli }} apply -f <({{ istio_ctl }} kube-inject {{ istio_options }} -f files/gateway-spring-deployment.yml) -n coolstore \
         )
@@ -78,7 +86,7 @@
 
     - name: Deploy gateway-vertx
       shell: |
-        {{ openshift_cli }} get svc gateway-vertx -n coolstore || \
+        {{ openshift_cli }} get dc gateway-vertx -n coolstore || \
         ( \
           {{ openshift_cli }} apply -f <({{ istio_ctl }} kube-inject {{ istio_options }} -f files/gateway-vertx-deployment.yml) -n coolstore \
         )
@@ -89,8 +97,7 @@
       shell: |
         {{ openshift_cli }} get svc gateway -n coolstore || \
         ( \
-          {{ openshift_cli }} create -f files/gateway-service.yml -n coolstore; \
-          {{ openshift_cli }} expose svc/gateway -n coolstore; \
+          {{ openshift_cli }} create -f files/gateway-service.yml -n coolstore;
         )
       args:
         executable: /bin/bash
@@ -100,16 +107,16 @@
         {{ openshift_cli }} get svc web -n coolstore || \
         ( \
           {{ openshift_cli }} apply -f <({{ istio_ctl }} kube-inject {{ istio_options }} -f files/web-deployment.yml) -n coolstore && \
-          {{ openshift_cli }} create -f files/web-service.yml -n coolstore; \
-          {{ openshift_cli }} expose svc/web -n coolstore; \
+          {{ openshift_cli }} create -f files/web-service.yml -n coolstore;
         )
       args:
         executable: /bin/bash
 
     - name: Deploy ingress-route and default route
       shell: |
-        {{ openshift_cli }} replace -f files/ingress-routes.yml --force -n coolstore && \
-        {{ openshift_cli }} replace -f files/route-rule-gateway-spring.yml --force -n coolstore
+        {{ openshift_cli }} get gateway coolstore-ingress -n coolstore || {{ istio_ctl }} create -f files/istio/istio-ingress-gateway.yaml -n coolstore
+        {{ openshift_cli }} get virtualservice gateway -n coolstore || {{ istio_ctl }} create -f files/istio/virtualservice-gateway.yml  -n coolstore
+        {{ openshift_cli }} get destinationrule gateway -n coolstore || {{ istio_ctl }} create -f files/istio/destination-rule-gateway.yml  -n coolstore
       args:
         executable: /bin/bash
 

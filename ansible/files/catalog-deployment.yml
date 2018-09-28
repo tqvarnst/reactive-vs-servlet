@@ -29,7 +29,6 @@ spec:
           initialDelaySeconds: 10
           periodSeconds: 5
           timeoutSeconds: 1
-        name: catalog
         ports:
         - containerPort: 8080
           name: http

@@ -29,39 +29,45 @@
   set_fact:
     istio_ctl: "{{ istio_dir.path }}/istio-{{ istio_version }}/bin/istioctl"
 
-- name: setup istio-system project
-  shell: |
-    {{ openshift_cli }} new-project istio-system
-    {{ openshift_cli }} adm policy add-scc-to-user anyuid      -z istio-ingress-service-account    -n istio-system
-    {{ openshift_cli }} adm policy add-scc-to-user privileged  -z istio-ingress-service-account    -n istio-system
-    {{ openshift_cli }} adm policy add-scc-to-user anyuid      -z istio-egress-service-account     -n istio-system
-    {{ openshift_cli }} adm policy add-scc-to-user privileged  -z istio-egress-service-account     -n istio-system
-    {{ openshift_cli }} adm policy add-scc-to-user anyuid      -z istio-pilot-service-account      -n istio-system
-    {{ openshift_cli }} adm policy add-scc-to-user privileged  -z istio-pilot-service-account      -n istio-system
-    {{ openshift_cli }} adm policy add-scc-to-user anyuid      -z istio-grafana-service-account    -n istio-system
-    {{ openshift_cli }} adm policy add-scc-to-user anyuid      -z istio-prometheus-service-account -n istio-system
-    {{ openshift_cli }} adm policy add-scc-to-user anyuid      -z prometheus                       -n istio-system
-    {{ openshift_cli }} adm policy add-scc-to-user privileged  -z prometheus                       -n istio-system
-    {{ openshift_cli }} adm policy add-scc-to-user anyuid      -z grafana                          -n istio-system
-    {{ openshift_cli }} adm policy add-scc-to-user privileged  -z grafana                          -n istio-system
-    {{ openshift_cli }} adm policy add-scc-to-user anyuid      -z default                          -n istio-system
-    {{ openshift_cli }} adm policy add-scc-to-user privileged  -z default                          -n istio-system
-    {{ openshift_cli }} adm policy add-cluster-role-to-user  cluster-admin  -z default             -n istio-system
-    {{ openshift_cli }} adm policy add-role-to-user view developer                                 -n istio-system
-  when: istio_project_result.rc!=0
+- name: set itstio_options as fact
+  set_fact:
+    istio_options: "{{ istio_options }}"
+
+#  - name: setup istio-system project
+#    shell: |
+#      {{ openshift_cli }} new-project istio-system
+#     {{ openshift_cli }} adm policy add-scc-to-user anyuid      -z istio-ingress-service-account    -n istio-system
+#     {{ openshift_cli }} adm policy add-scc-to-user privileged  -z istio-ingress-service-account    -n istio-system
+#     {{ openshift_cli }} adm policy add-scc-to-user anyuid      -z istio-egress-service-account     -n istio-system
+#     {{ openshift_cli }} adm policy add-scc-to-user privileged  -z istio-egress-service-account     -n istio-system
+#     {{ openshift_cli }} adm policy add-scc-to-user anyuid      -z istio-pilot-service-account      -n istio-system
+#     {{ openshift_cli }} adm policy add-scc-to-user privileged  -z istio-pilot-service-account      -n istio-system
+#     {{ openshift_cli }} adm policy add-scc-to-user anyuid      -z istio-grafana-service-account    -n istio-system
+#     {{ openshift_cli }} adm policy add-scc-to-user anyuid      -z istio-prometheus-service-account -n istio-system
+#     {{ openshift_cli }} adm policy add-scc-to-user anyuid      -z prometheus                       -n istio-system
+#     {{ openshift_cli }} adm policy add-scc-to-user privileged  -z prometheus                       -n istio-system
+#     {{ openshift_cli }} adm policy add-scc-to-user anyuid      -z grafana                          -n istio-system
+#     {{ openshift_cli }} adm policy add-scc-to-user privileged  -z grafana                          -n istio-system
+#     {{ openshift_cli }} adm policy add-scc-to-user anyuid      -z default                          -n istio-system
+#     {{ openshift_cli }} adm policy add-scc-to-user privileged  -z default                          -n istio-system
+#     {{ openshift_cli }} adm policy add-cluster-role-to-user  cluster-admin  -z default             -n istio-system
+#     {{ openshift_cli }} adm policy add-role-to-user view developer                                 -n istio-system
+#    when: istio_project_result.rc!=0
 
 - name: deploy istio and jaeger
   shell: |
-    {{ openshift_cli }} apply  -f {{ istio_dir.path }}/istio-{{ istio_version }}/install/kubernetes/istio.yaml                -n istio-system
-    {{ openshift_cli }} create -f {{ istio_dir.path }}/istio-{{ istio_version }}/install/kubernetes/addons/prometheus.yaml    -n istio-system
-    {{ openshift_cli }} create -f {{ istio_dir.path }}/istio-{{ istio_version }}/install/kubernetes/addons/grafana.yaml       -n istio-system
-    {{ openshift_cli }} create -f {{ istio_dir.path }}/istio-{{ istio_version }}/install/kubernetes/addons/servicegraph.yaml  -n istio-system
-    {{ openshift_cli }} apply  -f https://raw.githubusercontent.com/jaegertracing/jaeger-kubernetes/master/all-in-one/jaeger-all-in-one-template.yml -n istio-system
-    {{ openshift_cli }} expose svc grafana       -n istio-system
-    {{ openshift_cli }} expose svc servicegraph  -n istio-system
-    {{ openshift_cli }} expose svc jaeger-query  -n istio-system
-    {{ openshift_cli }} expose svc istio-ingress -n istio-system --hostname=coolstore.{{apps_hostname_suffix}}
-    {{ openshift_cli }} expose svc prometheus    -n istio-system
+    {{ openshift_cli }} apply  -f {{ istio_dir.path }}/istio-{{ istio_version }}/install/kubernetes/helm/istio/templates/crds.yaml
+    {{ openshift_cli }} apply -f {{ istio_dir.path }}/istio-{{ istio_version }}/install/kubernetes/istio-demo.yaml
+    # {{ openshift_cli }} apply  -f {{ istio_dir.path }}/istio-{{ istio_version }}/install/kubernetes/istio.yaml                -n istio-system
+    # {{ openshift_cli }} create -f {{ istio_dir.path }}/istio-{{ istio_version }}/install/kubernetes/addons/prometheus.yaml    -n istio-system
+    # {{ openshift_cli }} create -f {{ istio_dir.path }}/istio-{{ istio_version }}/install/kubernetes/addons/grafana.yaml       -n istio-system
+    # {{ openshift_cli }} create -f {{ istio_dir.path }}/istio-{{ istio_version }}/install/kubernetes/addons/servicegraph.yaml  -n istio-system
+    # {{ openshift_cli }} apply  -f https://raw.githubusercontent.com/jaegertracing/jaeger-kubernetes/master/all-in-one/jaeger-all-in-one-template.yml -n istio-system
+    {{ openshift_cli }} expose svc istio-ingressgateway -n istio-system --hostname=coolstore.{{apps_hostname_suffix}}
+    {{ openshift_cli }} expose svc servicegraph         -n istio-system
+    {{ openshift_cli }} expose svc grafana              -n istio-system
+    {{ openshift_cli }} expose svc prometheus           -n istio-system
+    {{ openshift_cli }} expose svc tracing              -n istio-system
   when: istio_project_result.rc!=0
 
 

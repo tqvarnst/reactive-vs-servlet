@@ -18,9 +18,9 @@
   changed_when: "'already running' not in result.stdout"
 
 # This is currently required for running istio in Minishift CDK
-- name: Disable SELinux
-  shell: minishift ssh -- sudo setenforce 0
-  when: disable_selinux
+# - name: Disable SELinux
+#   shell: minishift ssh -- sudo setenforce 0
+#   when: disable_selinux
 
 - name: Login to the server
   shell: oc login $(minishift console --url) -u system:admin --insecure-skip-tls-verify=false

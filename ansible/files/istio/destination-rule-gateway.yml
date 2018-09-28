@@ -1,0 +1,14 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  creationTimestamp: null
+  name: gateway
+spec:
+  host: gateway
+  subsets:
+  - labels:
+      type: spring
+    name: type-spring
+  - labels:
+      type: vertx
+    name: type-vertx

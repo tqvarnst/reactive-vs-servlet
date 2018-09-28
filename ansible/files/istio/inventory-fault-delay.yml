@@ -1,0 +1,15 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: inventory-delay
+spec:
+  hosts:
+  - inventory
+  http:
+  - fault:
+      delay:
+        fixedDelay: 100ms
+        percent: 100
+    route:
+    - destination:
+        host: inventory
