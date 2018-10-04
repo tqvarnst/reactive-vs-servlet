@@ -23,7 +23,7 @@ This demo also shows how Istio and Jaeger tracing can be used to get an greater 
 The installation is used as Ansible Playbook and there for require  **Ansible** and **Ansible Galaxy**.
 For load-testing we will use a tool called **Siege**.
 
-1. You need to have a OpenShift 3.9 installation, for example [Red Hat CDK](https://developers.redhat.com/products/cdk/overview/) or Minishift. 
+1. You need to have a OpenShift 3.10 installation, for example [Red Hat CDK](https://developers.redhat.com/products/cdk/overview/) or Minishift. 
 
 2. Install `ansible` and `ansible-galaxy` command line tools 
   
