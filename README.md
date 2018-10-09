@@ -6,7 +6,7 @@ The reactive framework used in this demo is **Eclipse Vert.x** and for the servl
 
 **NOTE:** The version of Hystrix used in the demo is actually using Java RX, which is a reactive library, however the servlet container is still using traditional servlet technologies.
 
-**NOTE:** More modern versions of Spring-Boot also provide a web server implemented using the Reactive system principles called Flux. However, since that is still a fairly new and rarely used feature of Spring Boot. 
+**NOTE:** More modern versions of Spring-Boot also provide a web server implemented using the Reactive system principles called Flux. However, that is still a fairly new and rarely used feature of Spring Boot. 
 
 The demo uses Istio and particularly Jaeger tracing to visualise the calls between services.
 
@@ -23,7 +23,9 @@ This demo also shows how Istio and Jaeger tracing can be used to get an greater 
 The installation is used as Ansible Playbook and there for require  **Ansible** and **Ansible Galaxy**.
 For load-testing we will use a tool called **Siege**.
 
-1. You need to have a OpenShift 3.10 installation, for example [Red Hat CDK](https://developers.redhat.com/products/cdk/overview/) or Minishift. 
+|**NOTE:** Currently the Ansible playbooks for minishift does only support the CDK versions of Minishift. If you are using community version of minishift then start minishift before you run the playbook and then use `-e minishift=false` as a parameter to the ansible-playbook.
+
+1. You need to have a OpenShift 3.9 or 3.10 installation, for example [Red Hat CDK](https://developers.redhat.com/products/cdk/overview/). 
 
 2. Install `ansible` and `ansible-galaxy` command line tools 
   
@@ -203,3 +205,11 @@ I strongly recommend that you find your own way to present this demo, but below 
     
 16. Point out that Vert.x has produced a result that has a 100% availability.
 17. To summarize, explain that the event queue in Eclipse Vert.x automatically applies the [Back-Pressure](https://www.reactivemanifesto.org/glossary#Back-Pressure) pattern causing Vert.x to slow down when the system is under pressure rather then return `503` status code.
+
+
+Troubleshooting 
+---------------
+
+* Mac OS X users need to upgrade the default Python installed to avoid certificate issues with GitHub. See https://blog.bearandgiraffe.com/ansible-github-and-a-failed-to-validate-the-ssl-certificate-story-a8a10ea17512 for more details on how to upgrade the ansible to use a later version of python.
+* The Ansible Galaxy roles requires `jmespath` python package on Mac OS X. To install it run: `sudo pip3 install jmespath`
+* Ansible on Mac OS X needs the GNU tar instead of BSD tar. Install it via `brew install gnu-tar`

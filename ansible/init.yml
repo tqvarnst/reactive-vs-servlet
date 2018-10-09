@@ -7,8 +7,13 @@
     user_openshift: developer
     openshift_cli: /usr/local/bin/oc
     minishift: true
+    oc_client_allowed_versions: (v3.9|v3.10)
     openjdk_is_definition: https://raw.githubusercontent.com/openshift/openshift-ansible/release-3.9/roles/openshift_examples/files/examples/v3.9/xpaas-streams/openjdk18-image-stream.json
   tasks:
+    - name: Verify oc client version
+      shell: oc version | grep ^oc | grep -Eq "{{ oc_client_allowed_versions }}"
+      changed_when: false
+
     - name: Setting up minishift
       include_role:
         name: minishift

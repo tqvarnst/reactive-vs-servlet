@@ -1,7 +1,7 @@
 ---
 
 - name: Check minishift version
-  shell: minishift version | grep ^CDK | grep -q {{ minishift_version }}
+  shell: minishift version | grep ^CDK | grep -Eq "{{ minishift_version }}"
   changed_when: false
 
 - name: Set and configure the minishift profile

@@ -1,5 +1,5 @@
 minishift_profile: reactive-vs-servlet
-minishift_version: v3.5
+minishift_version: (v3.5|v3.6)
 disable_selinux: true
 minishift_config_cpus: 6
 minishift_config_image_caching: true
