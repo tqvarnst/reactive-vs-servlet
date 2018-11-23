@@ -56,7 +56,7 @@ For load-testing we will use a tool called **Siege**.
 
 ## Installation
 
-1. Clone this repo `git clone https://github.com/tqvarnst/reactive-vs-servlet.git && reactive-vs-servlet`
+1. Clone this repo `git clone https://github.com/tqvarnst/reactive-vs-servlet.git && cd reactive-vs-servlet`
 
 **For Minishift use:**
 
